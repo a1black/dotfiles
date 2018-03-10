@@ -1,0 +1,130 @@
+[alias]
+    # Branch
+    b = branch -v
+    # Find branches containing commit.
+    bcc = branch -a --contains
+    # Remove branches that have already been merged with master.
+    bdm = !"git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
+    #configures current branch to "track" same name from origin or specified remote.
+    bt = !"f() { B=$(git symbolic-ref HEAD|cut -f3 -d/) && git config branch.$B.remote ${1:-origin} && git config branch.$B.merge refs/heads/$B; }; f"
+
+    # Checkout
+    co = checkout
+    # Checkout remote branch `git checkout -b test origin/test`.
+    cor = !"f() { git fetch; git checkout -b ${1##*/} $1; }; f"
+    # Checkout origin/master.
+    com = !"f() { git fetch; git checkout -b $1 origin/master; }; f"
+
+    # Commit
+    ci = commit -v --untracked-files=no
+    amend = commit --amend -e -C HEAD -v --reset-author --untracked-files=no
+
+    # Diff
+    d = diff --stat=120,130 --dirstat=files,10,cumulative -M -C
+    ds = diff --staged
+    du = diff @{upstream}
+    # List only names of changed files.
+    dls = diff --name-status -M -C
+
+    # Grep
+    g = --no-pager grep --color --ignore-case -n
+
+    # Log
+    ll = log --pretty=log --decorate --date=short --abbrev-commit --regexp-ignore-case
+    lst = log --pretty=log --stat --date=short --abbrev-commit
+
+    # Patch
+    fps = format-patch --stdout
+
+    # Pull
+    pall = !"git pull; git submodule foreach git pull origin master"
+
+    # Stash
+    snap = !git stash save "snapshot: $(date '+%d %b %y, %H:%M')" && git stash apply "stash@{0}"
+    snapls = !git stash list --grep snapshot
+
+    # Status
+    st = status --short --branch --untracked-files=no
+    sta = status --short --branch --untracked-files=normal
+
+    # Misc
+    whoami = !"echo \"$(git config user.name) <$(git config user.email)> \""
+    doh = !"f () { git config --get-regexp alias | grep $1; }; f"
+    # List repository contributors.
+    cunt = shortlog --summary --numbered
+[apply]
+    # Warn then applying patches with the specified whitespace issues.
+    whitespace = warn
+[branch]
+    # Implies option `--track` on git checkout.
+#    autosetupmerge = true
+[core]
+    editor = vim
+    # Use custom `.gitignore` and `.gitattributes`
+#    excludesfile = "$HOME/.gitconf/.gitignore_global"
+#    attributesfile = "$HOME/.gitconf/.gitattributes"
+    # trailing-space: look for spaces at the end of a line and empty lines at the end of file
+    # space-before-tab: looks for spaces before tabs at the beginning of a line
+    whitespace = trailing-space,space-before-tabs,-indent-with-non-tab
+    pager = less -iRFX
+[color]
+    ui = auto
+    diff = auto
+    status = auto
+    branch = auto
+    interactive = auto
+    grep = auto
+[color "branch"]
+    current = yellow reverse
+    local = yellow
+    remote = green
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold # line info
+    old = red           # deletions
+    new = green         # additions
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = cyan
+[commit]
+#    template = "$HOME/.gitconf/git_commit.tpl"
+#    gpgsign = true
+[diff]
+    algorithm = patience
+    # Detect renames as well as copies.
+    renames = copies
+    mnemonicprefix = true
+[diff "bin"]
+    # Use `hexdump` to diff binary files.
+    textconv = hexdump -v -C
+[interactive]
+    singlekey = true
+[help]
+    # Automatically correct and execute mistyped commands.
+    autocorrect = 1
+[merge]
+    tool = fugitivevimdiff
+    # Include summaries of merged commits in newly created merge commit messages.
+    log = true
+    summary = true
+[mergetool "fugitivevimdiff"]
+    cmd = "vim -c 'Gdiff' $MERGED"
+[pretty]
+    log = tformat:%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d
+[pull]
+    rebase = true
+[push]
+    default = upstream
+    # Make `git push` push relevant annotated tags when pushing branches out.
+    followTags = true
+[url "git@github.com:"]
+    insteadOf = "gh:"
+    pushInsteadOf = "github:"
+[user]
+    name = a1black
+    email = 37011601+a1black@users.noreply.github.com
+[include]
+    path = ~/.gitconfig.local
+
+# vi: fdm=indent ts=4 sw=4 et
