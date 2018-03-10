@@ -1,0 +1,71 @@
+{
+    "segment_data": {
+        "hostname": {
+            "args": {
+                "only_if_ssh": true,
+                "exclude_domain": false
+            }
+        },
+        "cwd": {
+            "args": {
+                "use_path_separator": false,
+                "dir_shorten_len": 0,
+                "dir_limit_depth": 3,
+                "shorten_home": true
+            }
+        }
+    },
+
+    "segments": {
+        "above": [{
+            "left": [
+                {
+                    "name": "user name",
+                    "function": "powerline.segments.common.env.user",
+                    "args": {
+                        "hide_user": true,
+                        "hide_domain": true
+                    },
+                    "priority": null
+                },
+                {
+                    "name": "current path",
+                    "function": "powerline.segments.shell.cwd",
+                    "priority": null
+                },
+                {
+                    "name": "env name",
+                    "before": "ⓔ  ",
+                    "function": "powerline.segments.common.env.virtualenv",
+                    "priority": 40
+                }
+            ]
+        }],
+
+        "left": [
+            {
+                "function": "powerline.segments.common.time.date",
+                "before": "",
+                "args": {
+                    "format": "%H:%M",
+                    "istime": true
+                },
+                "priority": null
+            },
+            {
+                "name": "gitstatus",
+                "function": "powerline_gitstatus.gitstatus",
+                "args": {
+                    "show_tag": true,
+                    "use_dash_c": true
+                },
+                "priority": 10
+            },
+            {
+                "name": "cmd status",
+                "function": "powerline.segments.shell.last_status",
+                "priority": 20
+            }
+       ]
+    }
+}
