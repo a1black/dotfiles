@@ -260,11 +260,11 @@ export PS1;
 PS2="\[${yellow}\]→ \[${reset}\]";
 export PS2;
 # Enable powerline plugin (see github.com/powerline/powerline)
-if [ $POWERLINE_ENABLE -eq 1 ] && which powerline > /dev/null 2>&1; then
+if [[ $POWERLINE_ENABLE -eq 1 && -e ~/.local/lib/powerline-plugins/ ]] && powerline -h > /dev/null 2>&1; then
     powerline-daemon -q
     POWERLINE_BASH_CONTINUATION=1
     POWERLINE_BASH_SELECT=1
-    source $(pip3 show powerline-status | grep -ioP '(?<=^Location: ).*')/powerline/bindings/bash/powerline.sh
+    source ~/.local/lib/powerline-plugins/bash/powerline.sh
 fi
 # }}}1
 
