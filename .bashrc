@@ -266,13 +266,14 @@ function _prompt_git_status_detailed() { #{{{2
     [ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ] && return
 
     local seg=$(git status --branch --porcelain=v1 2> /dev/null)
+    local seg_branch=$(echo -e "$seg" | head -n 1)
 
     local branch='' origin=''
     local ahead=0 behind=0
-    [[ ${seg[0]} =~ ^##.([-a-zA-Z0-9_]+) ]] && branch=${BASH_REMATCH[1]}
-    [[ ${seg[0]} =~ \.\.\.origin/([-a-zA-Z0-9_]+) ]] && origin=${BASH_REMATCH[1]}
-    [[ ${seg[0]} =~ ahead[[:space:]]([0-9]+) ]] && ahead=${BASH_REMATCH[1]}
-    [[ ${seg[0]} =~ behind[[:space:]]([0-9]+) ]] && behind=${BASH_REMATCH[1]}
+    [[ $seg_branch =~ ^##.([-a-zA-Z0-9_]+) ]] && branch=${BASH_REMATCH[1]}
+    [[ $seg_branch =~ \.\.\.origin/([-a-zA-Z0-9_]+) ]] && origin=${BASH_REMATCH[1]}
+    [[ $seg_branch =~ ahead[[:space:]]([0-9]+) ]] && ahead=${BASH_REMATCH[1]}
+    [[ $seg_branch =~ behind[[:space:]]([0-9]+) ]] && behind=${BASH_REMATCH[1]}
     # Show commit hash if no branch name.
     [ -z "$branch" ] && branch=$(git rev-parse --short HEAD 2> /dev/null)
     # Show @upstream if branch names are different.
@@ -298,7 +299,7 @@ function _prompt_git_status_detailed() { #{{{2
             # AA / DD / AU / DU were excluded then counting `unmerged`.
             ((staged++))
         fi
-    done < <(echo "$seg")
+    done < <(echo -e "$seg" | sed 's/^ /_/')
 
     local bg=$'\e[48;5;236m'
     # Determine branch color.
