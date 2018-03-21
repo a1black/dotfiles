@@ -169,8 +169,13 @@ let g:gitgutter_map_keys = 0
 let g:indentLine_setColors = 1
 let g:indentLine_char = '┆'
 let g:indentLine_leadingSpaceEnabled = 1
-let g:indentLine_bufNameExclude = ['_.*', 'NERD_tree.*', '.*\/vim\d\+\/doc\/.*']
+let g:indentLine_bufNameExclude = ['_.*', 'NERD_tree.*', '.*\/vim\d\+\/doc\/.*', '.*\/\.vim\/.*\/doc\/.*']
 let g:indentLine_enabled = 1
+" Syntax Highlight Settings {{{3
+let g:vim_markdown_no_default_key_mappings = 1
+let g:vim_markdown_conceal = 0
+let g:php_html_load = 0
+let g:php_sql_query = 0
 " }}}2
 
 " Section: Commands {{{1
@@ -222,21 +227,21 @@ Plug 'vim-airline/vim-airline'         " Prity statusline
 Plug 'vim-airline/vim-airline-themes'  " Themes fot statusline
 Plug 'mhinz/vim-startify'              " Fancy start screen
 " Language packages
-Plug 'plasticboy/vim-markdown'
-Plug 'othree/html5.vim'
-Plug 'pangloss/vim-javascript'
+"Plug 'plasticboy/vim-markdown'
+"Plug 'othree/html5.vim'
+"Plug 'pangloss/vim-javascript'
 Plug 'elzr/vim-json'
 "Plug 'chr4/nginx.vim'
-"Plug 'exu/pgsql.vim', {'for': 'sql'}
-"Plug 'StanAngeloff/php.vim', {'for': 'php'}
-"Plug 'vim-ruby/vim-ruby', {'for': 'ruby'}
-"Plug 'kurayama/systemd-vim-syntax', {'for': 'vim'}
-"Plug 'keith/tmux.vim', {'for': 'conf'}
+"Plug 'exu/pgsql.vim'
+"Plug 'StanAngeloff/php.vim'
+"Plug 'vim-ruby/vim-ruby'
+"Plug 'kurayama/systemd-vim-syntax'
+"Plug 'keith/tmux.vim'
 " Filesystem and search
 Plug 'scrooloose/nerdtree'             " File system tree explorer
 Plug 'Xuyuanp/nerdtree-git-plugin'     " Git status in NERDTree
-"Plug 'tpope/vim-vinegar'               " NERDTree extension
-"Plug 'ctrlpvim/ctrlp.vim'              " Fuzzy finder
+Plug 'tpope/vim-vinegar'               " Extension for built-in netrw plugin.
+Plug 'ctrlpvim/ctrlp.vim'              " Fuzzy finder
 "Plug 'junegunn/fzf', {'dir':'~/.fzf','do':'./install --all'} " Fuzzy finder
 " Editing tools
 Plug 'scrooloose/nerdcommenter'        " Code commenting tool
@@ -256,18 +261,20 @@ Plug 'w0rp/ale'                        " Lint engine
 "Plug 'tpope/vim-dispatch'              " Compiler plugin
 "Plug 'janko-m/vim-test'                " Test invokation plugin
 " Ctags and code completion
-Plug 'majutsushi/tagbar'               " On-the-fly in-memory tags creation
-"Plug 'shawncplus/phpcomplete.vim'      " Enhanced php code completion
-"Plug 'Valloric/YouCompleteMe'          " Code completion tool
+Plug 'majutsushi/tagbar'                              " On-the-fly in-memory tags creation
+Plug 'shawncplus/phpcomplete.vim', {'for': 'php'}     " Enhanced php code completion
+"Plug 'davidhalter/jedi-vim', {'for': 'python'}        " Code autocompletion for python
+"Plug 'Valloric/YouCompleteMe'                         " Code completion tool
 " Program languages
 "Plug 'klen/python-mode', {'for': 'python'}            " Tool set for python development
-"Plug 'davidhalter/jedi-vim', {'for': 'python'}        " Code autocompletion for python
 "Plug 'mattn/emmet-vim', {'for': ['css','html','xml']} " HTML5 and XML programming enhantment
-" Motion and mappings
+" Motion and mappingsNERDTree extension
 Plug 'easymotion/vim-easymotion'       " Enhanced motion in Vim
 Plug 'tpope/vim-unimpaired'            " Create mappings for square brackets
 Plug 'tpope/vim-repeat'                " Enhanced repeat in Vim
 Plug 'Yggdroot/indentLine'             " Highlight indent level
+" Miscellaneous plugins
+Plug 'a1black/vim-misc'                " My Vim commands
 call plug#end()
 
 " Section: Mappings {{{1
