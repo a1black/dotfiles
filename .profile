@@ -8,7 +8,7 @@ export POWERLINE_HOME="$HOME/.local/lib/powerline-plugins"
 # $PATH extension. {{{1
 [ -d $HOME/bin ] && PATH="$HOME/bin:$PATH"
 [ -d $HOME/.local/bin ] && PATH="$HOME/.local/bin:$PATH"
-if [ -z "$COMPOSER_HOME" ] && [ -d "$COMPOSER_HOME/vendor/bin" ]; then
+if [ -n "$COMPOSER_HOME" ] && [ -d "$COMPOSER_HOME/vendor/bin" ]; then
     PATH="$PATH:$COMPOSER_HOME/vendor/bin"
 fi
 
