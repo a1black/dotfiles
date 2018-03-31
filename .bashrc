@@ -121,9 +121,7 @@ alias meup='sudo apt-get -qq update; sudo apt-get -qq upgrade'
 
 ## Trminal colors and command color output.
 # Set terminal color capabilities.
-if infocmp gnome-256color > /dev/null 2>&1; then
-    export TERM=gnome-256color
-elif infocmp xterm-256color > /dev/null 2>&1; then
+if infocmp xterm-256color > /dev/null 2>&1; then
     export TERM=xterm-256color
 elif infocmp screen-256color > /dev/null 2>&1; then
     export TERM=screen-256color

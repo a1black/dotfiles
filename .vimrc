@@ -12,7 +12,7 @@ set autoread                      " Automatically read outside changes to a file
 set autowrite                     " Auto-save before commands like :next and :make
 set hidden                        " Allow switch buffer without saving changes
 set history=1000                  " Size of vim history
-"set clipboard=unnamed             " Yank to clipboard directly
+set clipboard=unnamed             " Yank to clipboard directly
 set lazyredraw                    " See help
 set noignorecase                  " Case insensitive search
 set smartcase                     " Case insensitive searches become sensitive with capitals
@@ -38,11 +38,17 @@ set formatoptions-=t              " Disable auto-wrap text
 set formatoptions+=j              " Delete comment character when joining commented lines
 set nrformats-=octal              " Do not treat '007' as octal number on <C-A> or <C-X>
 
+" Subsection: Autocomplete {{{2
+"--------------------
 set wildmenu                      " Enhanced command line auto-complition
 set wildmode=longest:full,full
-set wildignore+=tags,*.pyc        " File patterns ignored on file complition
-set complete-=i                   " Do not parse current and included files for <C-P>
-
+set complete-=i                   " Disable parsing included files for autocompletion with <C-P> and <C-N> (:help 'include')
+"set completeopt-=preview          " Do not show preview window for selected autocomlete option
+set completeopt+=menu             " Show select menu for autocomplete.
+set completeopt+=menuone          " Show select menu even if autocomplete menu contains a single option
+set completeopt+=longest          " Only inset the longest common text of the match
+set completeopt+=noselect         " Do not autoselect autocomplete option from menu.
+" }}}2
 " Subsection: Visual {{{2
 "--------------------
 if exists('+breakindent')         " same as +linebreak
@@ -54,7 +60,7 @@ else
 endif
 set relativenumber                " Show line number relative to the current line
 set number                        " Show current line number
-set cursorline                    " Highlight current line
+set cursorline                    " Highlight of the current line
 set scrolloff=2                   " Min number of screen lines to keep above and below the cursor
 set sidescrolloff=5               " Min number of screen columns to keep to the left and to the right of cursor
 set title                         " Show filename in the window titlebar
@@ -75,7 +81,20 @@ else
     set listchars=tab:>\ ,trail:·,eol:¬,nbsp:_,extends:>,precedes:<
 endif
 " }}}2
-
+" Subsection: GUI {{{2
+"--------------------
+if has("gui_running")
+    set mouse=nvi
+    set mousemodel=popup
+    set winaltkeys=no
+    set title icon
+    set guioptions-=T
+    set guioptions-=m
+    set guioptions-=e
+    set guioptions-=r
+    set guioptions-=L
+endif
+" }}}2
 " Subsection: File paths {{{2
 "--------------------
 set dictionary+=/usr/share/dict/words
@@ -90,17 +109,9 @@ if !empty($SUDO_USER) && $USER !=# $SUDO_USER
     set viminfo=
 endif
 " }}}2
-
-set pastetoggle=<F12>
-if has("gui_running")
-    set mouse=nvi
-    set mousemodel=popup
-endif
-set winaltkeys=no
-
 " Subsection: Plugin Settings {{{2
+"--------------------
 " CtrlP Settings {{{3
-set wildignore+=*/tmp/*,*/log/*,*/.git/*,*/.svn/*,*.so,*.swp,*.tmp,*.zip,*.tar
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files . -co --exclude-standard', 'find %s -type f']
 let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlP'
@@ -108,8 +119,10 @@ let g:ctrlp_by_filename = 0
 let g:ctrlp_regexp = 0
 let g:ctrlp_working_path_mode = 'ra'
 let g:ctrlp_open_new_file = 'r'
-let g:ctrlp_open_multiple_files = '5ijr'
-
+let g:ctrlp_open_multiple_files = 'i'
+"let g:ctrlp_types = ['fil', 'mru']
+let g:ctrlp_mruf_include = '\.py$\|\.php$|\.js$|\.json$|\.sh$|\.conf$|\.dist'
+" }}}3
 " Syntastic Settings {{{3
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
@@ -118,17 +131,25 @@ let g:syntastic_check_on_wq = 0
 let g:syntastic_html_checkers = ['tidy', 'htmlhint', 'eslint']
 let g:syntastic_python_checkers = ['flake8', 'mypy', 'python']
 let g:syntastic_yaml_checkers = ['yamllint']
-
+" }}}3
 " ALE Settings {{{3
 let g:ale_open_list = 0
 let g:ale_sign_column_always = 1
 let g:ale_list_window_size = 8
-
+" }}}3
+" PHPComplete {{{3
+let g:phpcomplete_parse_docblock_comments = 1
+let g:phpcomplete_add_class_extensions = ['pthreads']
+let g:phpcomplete_add_constant_extensions = ['pthreads']
+let g:phpcomplete_remove_function_extensions = ['memcache', 'mysql', 'sqlite']
+let g:phpcomplete_remove_class_extensions = ['memcache']
+let g:phpcomplete_remove_constant_extensions = ['memcache', 'mysql', 'sqlite']
+" }}}3
 " NERDTree Settings {{{3
 let g:NERDTreeNaturalSort = 1
 let g:NERDTreeMapOpenSplit = 's'
 let g:NERDTreeMapOpenVSplit = 'v'
-
+" }}}3
 " Airline Settings {{{3
 let g:airline_section_z = '%#__accent_bold#%3l/%L%#__restore__# :%3v'
 let g:airline#extensions#tabline#enabled = 1
@@ -140,7 +161,7 @@ let g:airline#extensions#tagbar#enabled = 1
 let g:airline#extensions#hunks#enabled = 1
 let g:airline#extensions#ale#enabled = 1
 let g:airline#extensions#syntastic#enabled = 0
-
+" }}}3
 " Startify {{{3
 let g:startify_bookmarks = []
 "let g:startify_list_order = ['files', 'bookmarks', 'sessions']
@@ -157,35 +178,45 @@ let g:startify_session_before_save = [
     \ 'echo "Cleaning up before saving.."',
     \ 'silent! NERDTreeClose'
     \ ]
-
+" }}}3
 " Tagbar {{{3
 let g:tagbar_autofocus = 1
 let g:tagbar_autoclose = 1
-
+" }}}3
 " GitGutter {{{3
 let g:gitgutter_map_keys = 0
 "let g:gitgutter_grep = 'grep --color=never'
+" }}}3
 " IndentLine {{{3
-let g:indentLine_setColors = 1
+let g:indentLine_setColors = 0
+let g:indentLine_setConceal = 0
+let g:indentLine_faster = 1
 let g:indentLine_char = '┆'
-let g:indentLine_leadingSpaceEnabled = 1
+let g:indentLine_leadingSpaceEnabled = 0
 let g:indentLine_bufNameExclude = ['_.*', 'NERD_tree.*', '.*\/vim\d\+\/doc\/.*', '.*\/\.vim\/.*\/doc\/.*']
 let g:indentLine_enabled = 1
+" }}}3
+" NERDCommenter {{{3
+let g:NERDCompactSexyComs = 0
+let g:NERDDefaultAlign = 'left'
+let g:NERDTrimTrailingWhitespaces = 1
+" }}}3
 " Syntax Highlight Settings {{{3
 let g:vim_markdown_no_default_key_mappings = 1
 let g:vim_markdown_conceal = 0
 let g:php_html_load = 0
 let g:php_sql_query = 0
+" }}}3
 " }}}2
-
+" }}}1
 " Section: Commands {{{1
+"--------------------
 command! -bar -count=0 RFC :edit http://www.ietf.org/rfc/rfc<count>.txt|setl ro noma
 command! -bar -nargs=? -bang Scratch :silent e<bang> Sess-Notes|set buftype=nofile bufhidden=hide noswapfile nobuflisted filetype=<args> modifiable
 
-command! -bar Invert :let &background = (&background=="light"?"dark":"light")
-let s:my_clr=['solarized', 'gruvbox', 'zenburn', 'hybrid', 'jellybeans', 'molokai']
-for s_my_clr in s:my_clr
-    execute "command! -bar Clr" . s_my_clr . " :colorscheme " . s_my_clr
+let s:my_clr=['gruvbox', 'hybrid', 'jellybeans', 'solarized']
+for s:clr in s:my_clr
+    execute "command! Clr".s:clr." :colorscheme ".s:clr
 endfor
 
 command! -bar -buffer Olink :call <SID>Open_url_in_cmd_brouser()
@@ -204,7 +235,7 @@ function! s:Open_url_in_cmd_brouser()
     call setreg('/', l:oldreg)
     execute 'normal ``'
 endfunction
-
+" }}}1
 " Section: Plugins {{{1
 "--------------------
 if empty(glob('~/.vim/autoload/plug.vim'))
@@ -218,28 +249,26 @@ call plug#begin('~/.vim/plug.vim.bundle')
 " Themes and color schemes
 Plug 'altercation/vim-colors-solarized'
 Plug 'nanotech/jellybeans.vim'
-Plug 'jnurmine/Zenburn'
 Plug 'morhetz/gruvbox'
 Plug 'w0ng/vim-hybrid'
-Plug 'tomasr/molokai'
 " Visual goodies
 Plug 'vim-airline/vim-airline'         " Prity statusline
 Plug 'vim-airline/vim-airline-themes'  " Themes fot statusline
 Plug 'mhinz/vim-startify'              " Fancy start screen
-" Language packages
+" Syntax highlight
 "Plug 'plasticboy/vim-markdown'
 "Plug 'othree/html5.vim'
 "Plug 'pangloss/vim-javascript'
-Plug 'elzr/vim-json'
+"Plug 'elzr/vim-json'
 "Plug 'chr4/nginx.vim'
 "Plug 'exu/pgsql.vim'
-"Plug 'StanAngeloff/php.vim'
+Plug 'StanAngeloff/php.vim'
 "Plug 'vim-ruby/vim-ruby'
 "Plug 'kurayama/systemd-vim-syntax'
 "Plug 'keith/tmux.vim'
 " Filesystem and search
-Plug 'scrooloose/nerdtree'             " File system tree explorer
-Plug 'Xuyuanp/nerdtree-git-plugin'     " Git status in NERDTree
+"Plug 'scrooloose/nerdtree'             " File system tree explorer
+"Plug 'Xuyuanp/nerdtree-git-plugin'     " Git status in NERDTree
 Plug 'tpope/vim-vinegar'               " Extension for built-in netrw plugin.
 Plug 'ctrlpvim/ctrlp.vim'              " Fuzzy finder
 "Plug 'junegunn/fzf', {'dir':'~/.fzf','do':'./install --all'} " Fuzzy finder
@@ -250,7 +279,7 @@ Plug 'godlygeek/tabular'               " Text aligning
 "Plug 'honza/vim-snippets'              " Code snippet library
 "Plug 'vimwiki/vimwiki'                 " Personal Wiki for Vim :meh
 "Plug 'mtth/scratch.vim'                " Note taking
-"Plug 'tpope/vim-surround'              " Surrounding text with quoates and tags (HTML)
+Plug 'tpope/vim-surround'              " Surrounding text with quoates and tags (HTML)
 " Version control systems
 Plug 'airblade/vim-gitgutter'          " Git status in sign column
 "Plug 'mhinz/vim-signify'               " VCS status in sign column
@@ -262,6 +291,7 @@ Plug 'w0rp/ale'                        " Lint engine
 "Plug 'janko-m/vim-test'                " Test invokation plugin
 " Ctags and code completion
 Plug 'majutsushi/tagbar'                              " On-the-fly in-memory tags creation
+"Plug 'vim-php/tagbar-phpctags.vim', {'for': 'php'}    " Enhanced Tagbar for PHP code.
 Plug 'shawncplus/phpcomplete.vim', {'for': 'php'}     " Enhanced php code completion
 "Plug 'davidhalter/jedi-vim', {'for': 'python'}        " Code autocompletion for python
 "Plug 'Valloric/YouCompleteMe'                         " Code completion tool
@@ -272,12 +302,13 @@ Plug 'shawncplus/phpcomplete.vim', {'for': 'php'}     " Enhanced php code comple
 Plug 'easymotion/vim-easymotion'       " Enhanced motion in Vim
 Plug 'tpope/vim-unimpaired'            " Create mappings for square brackets
 Plug 'tpope/vim-repeat'                " Enhanced repeat in Vim
-Plug 'Yggdroot/indentLine'             " Highlight indent level
+"Plug 'Yggdroot/indentLine'             " Highlight indent level
 " Miscellaneous plugins
 Plug 'a1black/vim-misc'                " My Vim commands
 call plug#end()
-
+" }}}1
 " Section: Mappings {{{1
+"--------------------
 " Get off my lawn
 nnoremap <Left> :echoe "Use h"<CR>
 nnoremap <Right> :echoe "Use l"<CR>
@@ -287,15 +318,10 @@ nnoremap <Down> :echoe "Use j"<CR>
 " Clear the highlighting search results
 nnoremap <C-L> :nohlsearch<C-R>=has('diff')?'<Bar>diffupdate':''<CR><CR>
 nnoremap Y y$
-        " Exit insert and return cursor to last position
+" Exit insert and return cursor to last position
 inoremap <C-C> <Esc>`^
-        " Break undo sequence
+" Break undo sequence
 inoremap <C-U> <C-G>u<C-U>
-inoremap <M-o> <C-O>o
-inoremap <M-O> <C-O>O
-inoremap <M-I> <C-O>^
-inoremap <M-A> <C-O>$
-xnoremap <M-A> $h
 " Window split resize
 nnoremap <silent> <C-w><C-h> :vertical resize -5<CR>
 nnoremap <silent> <C-w><C-j> :resize +5<CR>
@@ -328,7 +354,7 @@ nnoremap <silent> <F8> :Ctoggle<CR>
 nmap     <silent> <F9> <Plug>(ale_toggle_buffer)
 "Open app menu    <F10>
 "Fullscreen mod   <F11>
-"Toggle paste mod <F12>
+set   pastetoggle=<F12>
 
 " GitGutter
 nmap <Leader>hs <Plug>GitGutterStageHunk
@@ -342,9 +368,14 @@ nmap ]e <Plug>(ale_next_wrap)
 nmap [E <Plug>(ale_first)
 nmap ]E <Plug>(ale_last)
 
+" Inspired by tpope/unimpared
+nmap [oy :set syntax=ON<CR>
+nmap ]oy :set syntax=OFF<CR>
+nmap =oy :set syntax=<C-R>=&syntax == "OFF" ? "ON" : "OFF"<CR><CR>
+
 " Insert time
 inoremap <silent> <C-G><C-T> <C-R>=repeat(complete(col('.'),map(["%Y-%m-%d %H:%M:%S","%a, %d %b %Y %H:%M:%S %z","%Y %b %d","%d-%b-%y","%a %b %d %T %Z %Y"],'strftime(v:val)')+[localtime()]),0)<CR>
-
+" }}}1
 " Section: Autocommands {{{1
 "--------------------
 if has("autocmd")
@@ -363,7 +394,7 @@ if has("autocmd")
     augroup FileTypeCheck " {{{2
         autocmd!
         autocmd BufNewFile,BufRead *.todo,*.txt,README,INSTALL,TODO if &ft == '' | set ft=text | endif
-    augroup END
+    augroup END " }}}2
     augroup FileTypeOptions " {{{2
         autocmd!
         autocmd FileType help nnoremap <silent><buffer> q :q<CR>
@@ -373,8 +404,9 @@ if has("autocmd")
         autocmd FileType * if exists("+completefunc") && &completefunc == "" | setlocal completefunc=syntaxcomplete#Complete | endif
     augroup END " }}}2
 endif
-
+" }}}1
 " Section: Themes and highlights " {{{1
+"--------------------
 function! s:initfont()
     if has("unix")
         set guifont=Monospace\ Medium\ 13
@@ -383,29 +415,35 @@ function! s:initfont()
     endif
 endfunction
 if (&t_Co > 2 || has("gui_running")) && has("syntax")
-    if exists("syntax_on") || exists("syntax_manual")
-    else
+    if !exists("syntax_on") && !exists("syntax_manual")
         syntax on
     endif
+    syntax sync minlines=100
     " Colorschemes settings
+    let g:loaded_togglebg = 1
     let g:solarized_termcolors=256
-    let g:solarized_termtrans=1
-    let g:molokai_original=1
+    let g:gruvbox_termcolors=256
     " Airline color settings
     let g:airline_theme='jellybeans'
     let g:airline_powerline_fonts=1
     " Indent Line settings
     let g:indentLine_color_term = 246
+    " Switch colorscheme for specific file type
+    let g:a1black_misc_colorscheme_php='jellybeans'
+    " Set colorscheme
+    set background=dark
+    if has('gui_running')
+        colorscheme gruvbox
+    else
+        colorscheme solarized
+    endif
 
     augroup VisualOptions
         autocmd!
-        autocmd VimEnter * if !has("gui_running") && exists(":Clrsolarized") == 2 | Clrsolarized | endif
-        autocmd VimEnter * if !has("gui_running") | set background=light | endif
-"        " Uncomment redraw of statusline if Airline starts without colors
-        autocmd VimEnter * if exists(":AirlineRefresh") == 2 | AirlineRefresh
-"        | endif
-        autocmd GuiEnter * set background=light title icon guioptions-=T guioptions-=m guioptions-=e guioptions-=r guioptions-=L
-        autocmd GuiEnter * if exists(":Clrgruvbox") == 2 | Clrgruvbox | endif
+        "autocmd VimEnter * if !has('gui_running') | set background=dark | colorscheme solarized | endif
+        " Uncomment redraw of statusline if Airline starts without colors
+        autocmd VimEnter * if exists(":AirlineRefresh") == 2 | AirlineRefresh | endif
+        "autocmd GuiEnter * set background=dark | colorscheme gruvbox
         autocmd GuiEnter * call <SID>initfont()
     augroup END
 endif
