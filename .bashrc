@@ -50,10 +50,14 @@ fi
 # }}}1
 
 # Software settings. {{{1
+# Enable periodic `git fetch` in current directory.
+export PS1_GIT_FETCH_ENABLE=0
 # Enable Powerline statusline plugin.
 export POWERLINE_ENABLE=0
 # make less more friendly for non-text input files, see lesspipe(1).
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+# Disable TTY XOFF flow control command (Ctrl+S)
+stty -ixon
 # }}}1
 
 # User defined commands. {{{1
@@ -101,6 +105,7 @@ alias py3='python3'
 alias py3c='python3 -m py_compile'
 # Php
 alias composer='composer --profile --verbose'
+alias phpcsfix='php-cs-fix fix --verbose --show-progress=dots'
 # X clipboard
 if which xsel >/dev/null 2>&1 ; then
     alias pbcopy='xsel -i -b'
@@ -224,12 +229,28 @@ function _prompt_short_pwd() { #{{{2
     shopt "$NGV" nullglob
 } #}}}2
 
+# Do background update of git index every N minutes.
+function _git_status_fetch() { #{{{2
+    [ "$PS1_GIT_FETCH_ENABLE" != '1' ] && return 0
+    local state_cache="$UID-$$"
+    [ ! -e "/dev/shm/$state_cache" ] && date +%s > /dev/shm/$state_cache
+    local old_mark=$(cat /dev/shm/$state_cache)
+    local new_mark=$(date +%s)
+    ((new_mark -= $old_mark))
+    if [ $new_mark -ge 600 ]; then
+        date +%s > /dev/shm/$state_cache
+        git fetch -q &> /dev/null &
+    fi
+} #}}}2
+
 # Return simple git status string.
 function _prompt_git_status_simple() { #{{{2
     # Check if current directory is git working tree.
     ! git rev-parse --is-inside-work-tree > /dev/null 2>&1 && return
     # Check if the current directory is ".git".
     [ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ] && return
+    # Do `git fetch`.
+    _git_status_fetch
     # Branch name.
     local branch=$(git symbolic-ref --quiet --short HEAD 2> /dev/null)
     local brcom=$(git rev-parse --short HEAD 2> /dev/null)
@@ -262,10 +283,11 @@ function _prompt_git_status_detailed() { #{{{2
     ! git rev-parse --is-inside-work-tree > /dev/null 2>&1 && return
     # Check if the current directory is ".git".
     [ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ] && return
-
+    # Do `git fetch`.
+    _git_status_fetch
+    # Collect data.
     local seg=$(git status --branch --porcelain=v1 2> /dev/null)
     local seg_branch=$(echo -e "$seg" | head -n 1)
-
     local branch='' origin=''
     local ahead=0 behind=0
     [[ $seg_branch =~ ^##.([-a-zA-Z0-9_]+) ]] && branch=${BASH_REMATCH[1]}
