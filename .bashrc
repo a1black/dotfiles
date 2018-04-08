@@ -40,12 +40,8 @@ esac
 
 # Prompt autocomplition. {{{1
 # enable bash completion in interactive shells
-if ! shopt -oq posix; then
-    if [ -f /usr/share/bash-completion/bash_completion ]; then
-        . /usr/share/bash-completion/bash_completion
-    elif [ -f /etc/bash_completion ]; then
-        . /etc/bash_completion
-    fi
+if ! shopt -oq posix && [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
 fi
 # }}}1
 
@@ -58,6 +54,9 @@ export POWERLINE_ENABLE=0
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 # Disable TTY XOFF flow control command (Ctrl+S)
 stty -ixon
+# less history file.
+export LESS='-iFJMRs'
+export LESSHISTFILE="/dev/null"
 # }}}1
 
 # User defined commands. {{{1
@@ -89,8 +88,6 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 # Enable colored output.
 if [ -x /usr/bin/dircolors ]; then
     alias ls='ls --color=auto'
-    alias dir='dir --color=auto'
-    alias vdir='vdir --color=auto'
     alias grep='grep --color=auto'
 fi
 # list of aliases for ls utilite.
@@ -98,13 +95,7 @@ alias ll='ls -AlF --human-readable --escape'
 alias lw='ls -AlF --human-readable --escape --group-directories-first'
 alias lc='ls -CF --escape --group-directories-first'
 alias l1='ls -1F --escape --group-directories-first'
-# Python
-alias py2='python2'
-alias py2c='python2 -m py_compile'
-alias py3='python3'
-alias py3c='python3 -m py_compile'
 # Php
-alias composer='composer --profile --verbose'
 alias phpcsfix='php-cs-fix fix --verbose --show-progress=dots'
 # X clipboard
 if which xsel >/dev/null 2>&1 ; then
@@ -114,23 +105,9 @@ elif which xclip >/dev/null 2>&1 ; then
     alias pbcopy='xclip -selection -c'
     alias pbpaste='xclip -selection clipboard -o'
 fi
-# Less
-alias less='less -iJFRX'
-# Convert sequence of whitespaces to tab.
-alias stot="sed -E 's/\s+/\t/g'"
 # Kill Chrome processes.
 alias killchrome="ps -C chrome | grep chrome | awk '{print \$1}' | xargs -r kill -9"
-# Update APT cache and install updates.
-alias meup='sudo apt-get -qq update; sudo apt-get -qq upgrade'
 # }}}1
-
-## Trminal colors and command color output.
-# Set terminal color capabilities.
-if infocmp xterm-256color > /dev/null 2>&1; then
-    export TERM=xterm-256color
-elif infocmp screen-256color > /dev/null 2>&1; then
-    export TERM=screen-256color
-fi
 
 # Solarized theme prompt colors. {{{1
 reset=$'\e[0m'
@@ -174,6 +151,7 @@ export LESS_TERMCAP_so=$revs$green
 #export LESS_TERMCAP_so=$'\e[40;48;5;28m' # begin standout-mode - info box
 export LESS_TERMCAP_ue=$reset            # end underline
 export LESS_TERMCAP_us=$underline$violet # begin underline
+export GROFF_NO_SGR=1
 # ls color scheme.
 export CLICOLOR=1
 LS_COLORS='no=00:fi=00:di=01;31:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:ow=34;47:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=47;04;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:*.php=00;32:*.py=00;95:*.pyc=00;40:*.conf=00;31:*rc=00;31:*.sh=00;34:'
