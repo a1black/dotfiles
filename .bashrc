@@ -215,7 +215,7 @@ function _git_status_fetch() { #{{{2
     local old_mark=$(cat /dev/shm/$state_cache)
     local new_mark=$(date +%s)
     ((new_mark -= $old_mark))
-    if [ $new_mark -ge 600 ]; then
+    if [ $new_mark -ge 300 ]; then
         date +%s > /dev/shm/$state_cache
         git fetch -q &> /dev/null &
     fi

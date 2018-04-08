@@ -2,10 +2,10 @@
 "--------------------
 
 set nocompatible                  " improved Vim experience
-scriptencoding utf-8              " utf-8 all the way
 set encoding=utf-8 nobomb         " do not use BOM
-if has("eval")                    " Use 'cp1252' encoding instead of 'latin1'
-    let &fileencodings=substitute(&fileencodings,"latin1","cp1252","")
+scriptencoding utf-8              " utf-8 all the way
+if has('eval')                    " Use 'cp1252' encoding instead of 'latin1'
+    let &fileencodings=substitute(&fileencodings,'latin1','cp1252','')
 endif
 set fileformats=unix,dos,mac
 set autoread                      " Automatically read outside changes to a file
@@ -45,7 +45,7 @@ set nrformats-=octal              " Do not treat '007' as octal number on <C-A> 
 set wildmenu                      " Enhanced command line auto-complition
 set wildmode=longest:full,full
 set complete-=i                   " Disable parsing included files for autocompletion with <C-P> and <C-N> (:help 'include')
-"set completeopt-=preview          " Do not show preview window for selected autocomlete option
+set completeopt-=preview          " Do not show preview window for selected autocomlete option
 set completeopt+=menu             " Show select menu for autocomplete.
 set completeopt+=menuone          " Show select menu even if autocomplete menu contains a single option
 set completeopt+=longest          " Only inset the longest common text of the match
@@ -70,7 +70,7 @@ set showtabline=2                 " Always display the tabline
 set laststatus=2                  " Always display the statusline
 set cmdheight=1                   " Size of command line
 set display+=lastline
-"set showcmd                      " Show (partial) command in status line
+set noshowcmd                     " Show (partial) command in status line
 set incsearch                     " Highlight matches while typing search pattern
 set hlsearch                      " Highlight search matches
 set foldmethod=marker
@@ -85,7 +85,7 @@ endif
 " }}}2
 " Subsection: GUI {{{2
 "--------------------
-if has("gui_running")
+if has('gui_running')
     set mouse=nvi
     set mousemodel=popup
     set winaltkeys=no
@@ -226,7 +226,7 @@ command! -bar -nargs=? -bang Scratch :silent e<bang> Sess-Notes|set buftype=nofi
 
 let s:my_clr=['gruvbox', 'hybrid', 'jellybeans', 'solarized']
 for s:clr in s:my_clr
-    execute "command! Clr".s:clr." :colorscheme ".s:clr
+    execute 'command! Clr'.s:clr.' :colorscheme '.s:clr
 endfor
 
 command! -bar -buffer Olink :call <SID>Open_url_in_cmd_brouser()
@@ -239,7 +239,7 @@ function! s:Open_url_in_cmd_brouser()
     endif
     if search(l:url_pattern, 'cw', line('.'))
         let l:href=matchstr(getline(line('.')), l:url_pattern, col('.')-1)
-        call system("links '" . l:href . "'")
+        call system('elinks "'.l:href.'"')
         echom 'Url was opened in Links'
     endif
     call setreg('/', l:oldreg)
@@ -252,7 +252,10 @@ if empty(glob('~/.vim/autoload/plug.vim'))
     silent !mkdir -p ~/.vim/autoload
     silent !mkdir -p ~/.vim/plug.vim.bundle
     silent !wget -qO - 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim' > ~/.vim/autoload/plug.vim
-    autocmd VimEnter * PlugInstall --sync
+    augroup PlugVimInstall
+        autocmd!
+        autocmd VimEnter * PlugInstall --sync
+    augroup END
     source ~/.vimrc
 endif
 call plug#begin('~/.vim/plug.vim.bundle')
@@ -363,7 +366,7 @@ map!     <silent> <F1> <Esc>g<C-G>
 nnoremap <silent> <F1> :if exists(':Startify')<Bar>exe 'Startify'<Bar>else<Bar>echoerr 'Startify is not available.'<Bar>endif<CR>
 nnoremap <silent> <F2> :pclose<CR>
 nnoremap <silent> <F3> :Ltoggle<CR>
-nnoremap <silent> <F4> :Ctoggle<CR>
+nnoremap <silent> <F4> :Ltoggle!<CR>
 nnoremap <silent> <F5> :if exists(':TagbarToggle')<Bar>exe 'TagbarToggle'<Bar>else<Bar>echoerr 'Tagbar is not available.'<Bar>endif<CR>
 nnoremap <silent> <F6> :if &previewwindow<Bar>pclose<Bar>elseif exists(':Gdiff')<Bar>exe 'Gdiff'<Bar>else<Bar>echoerr 'Fugitive is not available.'<Bar>endif<CR>
 nnoremap <silent> <F7> :echo '<F7>'<CR>
@@ -378,6 +381,7 @@ nmap <Leader>hs <Plug>GitGutterStageHunk
 nmap <Leader>hu <Plug>GitGutterUndoHunk
 nmap <Leader>hp <Plug>GitGutterPreviewHunk
 " Movement
+nnoremap <leader>wg :<C-U>execute v:count.' wincmd w'<CR>
 nmap [h <Plug>GitGutterPrevHunk
 nmap ]h <Plug>GitGutterNextHunk
 nmap [s <Plug>(ale_previous_wrap)
@@ -395,7 +399,7 @@ inoremap <silent> <C-G><C-T> <C-R>=repeat(complete(col('.'),map(["%Y-%m-%d %H:%M
 " }}}1
 " Section: Autocommands {{{1
 "--------------------
-if has("autocmd")
+if has('autocmd')
     filetype plugin indent on
     augroup Misc " {{{2
         autocmd!
@@ -426,14 +430,14 @@ endif
 " Section: Themes and highlights " {{{1
 "--------------------
 function! s:initfont()
-    if has("unix")
+    if has('unix')
         set guifont=Monospace\ Medium\ 13
-    elseif has("win32")
+    elseif has('win32')
         set guifont=Consolas:h11,Courier\ New:h10
     endif
 endfunction
-if (&t_Co > 2 || has("gui_running")) && has("syntax")
-    if !exists("syntax_on") && !exists("syntax_manual")
+if (&t_Co > 2 || has('gui_running')) && has('syntax')
+    if !exists('syntax_on') && !exists('syntax_manual')
         syntax on
     endif
     syntax sync minlines=100
@@ -458,18 +462,16 @@ if (&t_Co > 2 || has("gui_running")) && has("syntax")
 
     augroup VisualOptions
         autocmd!
-        "autocmd VimEnter * if !has('gui_running') | set background=dark | colorscheme solarized | endif
         " Uncomment redraw of statusline if Airline starts without colors
         autocmd VimEnter * if exists(":AirlineRefresh") == 2 | AirlineRefresh | endif
-        "autocmd GuiEnter * set background=dark | colorscheme gruvbox
         autocmd GuiEnter * call <SID>initfont()
     augroup END
 endif
 " }}}1
 
-if filereadable(expand("~/.vim/vimrc.local"))
+if filereadable(expand('~/.vim/vimrc.local'))
     source ~/.vim/vimrc.local
-elseif filereadable(expand("~/.vimrc.local"))
+elseif filereadable(expand('~/.vimrc.local'))
     source ~/.vimrc.local
 endif
 
