@@ -100,7 +100,8 @@ endif
 " Subsection: File paths {{{2
 "--------------------
 set dictionary+=/usr/share/dict/words
-setglobal tags=./tags
+"set cpoptions+=d
+set tags=./tags,tags
 set viminfo=!,'20,<50,s10,h,n~/.vim/viminfo
 set backupdir^=~/.vim/backups
 set directory^=~/.vim/swaps
@@ -277,7 +278,7 @@ Plug 'mhinz/vim-startify'              " Fancy start screen
 "Plug 'exu/pgsql.vim'
 
 " Miscellaneous plugins
-Plug 'a1black/vim-misc'                " My Vim commands
+Plug 'a1black/vimisc'                   " My Vim commands
 "Plug 'xolox/vim-misc'                  " Library required for all plugins by Xolox
 
 " Filesystem and search
