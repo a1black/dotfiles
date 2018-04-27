@@ -363,4 +363,18 @@ if [[ $POWERLINE_ENABLE -eq 1 && -e $POWERLINE_HOME/bash/powerline.sh ]] && powe
 fi
 # }}}1
 
+# fzf search settings. {{{1
+if [ -f $HOME/.fzf.bash ]; then
+    . $HOME/.fzf.bash
+    FZF_DEFAULT_OPTS='--no-height --no-reverse'
+    FZF_CTRL_T_OPTS='--select-1 --exit-0'
+    FZF_CTRL_T_OPTS+=' --preview "(highlight -O ansi -l {} 2> /dev/null || cat {} || ls --color=always -1 {}) 2> /dev/null | head -100"'
+    FZF_CTRL_R_OPTS='--preview "echo {}" --preview-window down:3:hidden:wrap --bind "?:toggle-preview"'
+
+    export FZF_DEFAULT_OPTS
+    export FZF_CTRL_T_OPTS
+    export FZF_CTRL_R_OPTS
+fi
+# }}}1
+
 # vi: ft=sh fdm=marker ts=4 sw=4 et
