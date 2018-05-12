@@ -458,7 +458,7 @@ if (&t_Co > 2 || has('gui_running')) && has('syntax')
     if has('gui_running')
         colorscheme gruvbox
     else
-        colorscheme solarized
+        silent! colorscheme solarized
     endif
 
     augroup VisualOptions
