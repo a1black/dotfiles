@@ -48,6 +48,8 @@ fi
 # Software settings. {{{1
 # Enable periodic `git fetch` in current directory.
 export PS1_GIT_FETCH_ENABLE=0
+# Battery energy below this PS1 will have remain charge indicator.
+export PS1_LOW_BATTERY_ENERGY=60
 # Enable Powerline statusline plugin.
 export POWERLINE_ENABLE=0
 # make less more friendly for non-text input files, see lesspipe(1).
@@ -79,6 +81,33 @@ up() {
     done
     cd $path
 }
+# Simple wrap for upower util for providing short battery remain charge.
+wpower() {
+    local battery_id battery_info
+    battery_id=$(upower -e 2> /dev/null | grep -m 1 battery)
+    [ -z "$battery_id" ] && return 1
+    battery_info=$(upower -i $battery_id 2> /dev/null | \
+        sed -n -E '/state:/p;/percentage:/p;/(remain|time to [a-z]+):/p')
+    [ -z "$battery_info" ] && return 1
+    # Charging/discharging state.
+    local plugged=$(cat <<< $battery_info | awk '/state:/ {print $2}')
+    # Remain energy in percents.
+    local energy_left=$(cat <<< $battery_info | awk '/percentage:/ {print 0+$2}')
+    if [ "${plugged,,}" = 'charging' ]; then
+        # Prints out charging information.
+        printf "\u26a1%d%%" $energy_left
+    else
+        # Calculate remaining time before full discharge.
+        local time_to=$(cat <<< $battery_info | grep -E '(remain|time to [a-z]+)' | cut -d: -f2)
+        local time_left=$(echo "$time_to" | awk '{printf "%.0f", 0+$1}')
+        # Translate hours to minutes.
+        if echo "$time_to" | grep -q 'hours'; then
+            time_left=$(awk -v left=$time_left 'BEGIN{printf "%.0f", left*60}')
+        fi
+        # Prints out remaining energy.
+        printf "%d%% %d:%02d" $energy_left $(($time_left / 60)) $(($time_left % 60))
+    fi
+}
 # }}}1
 
 # Alias definitions. {{{1
@@ -107,6 +136,8 @@ elif which xclip >/dev/null 2>&1 ; then
 fi
 # Kill Chrome processes.
 alias killchrome="ps -C chrome | grep chrome | awk '{print \$1}' | xargs -r kill -9"
+# Disable display
+alias doff="xset -display :0.0 dpms force off"
 # }}}1
 
 # Solarized theme prompt colors. {{{1
@@ -206,6 +237,30 @@ function _prompt_short_pwd() { #{{{2
     # Reset nullglob in case this is being used as a function.
     shopt "$NGV" nullglob
 } #}}}2
+
+# Display battery indicator on low remain energy.
+# Args:
+#   -bg     colorize output using background
+function _prompt_low_energy() {
+    local info=$(wpower)
+    [ -z "$info" ] && return 1
+    local energy_left=$(cat <<< "$info" | grep -oP '\d+(?=%)' | awk '{print 0+$1}')
+    local energy_low=$(awk -v low="$PS1_LOW_BATTERY_ENERGY" 'BEGIN{print 0+low}')
+    ((energy_low > 0 && energy_left > 0 && energy_left > energy_low)) && return 0
+    # Colorize output.
+    local clr bg=0
+    [ "$1" = '-bg' ] && bg=1
+    if ((energy_left <= 20)); then
+        ((bg == 1)) && clr=$'\e[48;5;124m\e[38;5;15m' || clr=$'\e[38;5;124m'
+    elif ((energy_left <= 50)); then
+        ((bg == 1)) && clr=$'\e[48;5;202m\e[38;5;0m' || clr=$'\e[38;5;202m'
+    elif ((energy_left <= 80)); then
+        ((bg == 1)) && clr=$'\e[48;5;226m\e[38;5;0m' || clr=$'\e[38;5;226m'
+    else
+        ((bg == 1)) && clr=$'\e[48;5;34m\e[38;5;15m' || clr=$'\e[38;5;34m'
+    fi
+    printf "\001%s\002 %s \001%s\002" $clr "$info" $reset
+}
 
 # Do background update of git index every N minutes.
 function _git_status_fetch() { #{{{2
@@ -344,15 +399,16 @@ PS1="\[\033]0;\$(_prompt_short_pwd)\007\]"
 PS1+="\n"
 PS1+="\$(_prompt_uid_color)\u\[$reset\]"
 [ -n "$SSH_TTY" ] && PS1+="\[$blue\] at \[$bold\]\[$purple\]\h\[$reset\]"
-PS1+="\[${blue}\] in "
-PS1+="\[${green}\]\w"
+PS1+="\[$blue\] in "
+PS1+="\[$green\]\w"
 PS1+="\n"
-PS1+="\[$revs\]\[$white\]\A \[${reset}\]"
+PS1+="\[$revs\]\[$white\]\[$bold\]\A \[$reset\]"
+PS1+="\$(_prompt_low_energy -bg)"
 PS1+="\$(_prompt_virtualenv)"
 PS1+="\$(_prompt_git_status_detailed)"
-PS1+=" \$(_prompt_uid_color)\$ \[${reset}\]"
+PS1+=" \$(_prompt_uid_color)\$ \[$reset\]"
 export PS1
-PS2="\[${yellow}\]→ \[${reset}\]"
+PS2="\[$yellow\]→ \[$reset\]"
 export PS2
 # Enable powerline plugin (see github.com/powerline/powerline)
 if [[ $POWERLINE_ENABLE -eq 1 && -e $POWERLINE_HOME/bash/powerline.sh ]] && powerline -h > /dev/null 2>&1; then
