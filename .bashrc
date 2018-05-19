@@ -99,10 +99,12 @@ wpower() {
     else
         # Calculate remaining time before full discharge.
         local time_to=$(cat <<< $battery_info | grep -E '(remain|time to [a-z]+)' | cut -d: -f2)
-        local time_left=$(echo "$time_to" | awk '{printf "%.0f", 0+$1}')
+        local time_left=$(echo "$time_to" | awk '{print 0+$1}')
         # Translate hours to minutes.
         if echo "$time_to" | grep -q 'hours'; then
             time_left=$(awk -v left=$time_left 'BEGIN{printf "%.0f", left*60}')
+        else
+            time_left=$(printf "%.0f" $time_left)
         fi
         # Prints out remaining energy.
         printf "%d%% %d:%02d" $energy_left $(($time_left / 60)) $(($time_left % 60))

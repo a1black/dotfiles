@@ -33,4 +33,4 @@ set -g status-justify left                              # aligning of window lis
 set -g status-left-length 20
 set -g status-right-length 140
 set -g status-left '#[default](#S) #[fg=red]• #[default]'
-set -g status-right '#[fg=green,bg=default]#(cut -d " " -f 1-3 /proc/loadavg) #[fg=white]< #[default]%a #[fg=white]< #[default]%b %d #[fg=white]< #[fg=blue]%H:%M #[fg=white]< #[fg=magenta]#(whoami)@#H #[default]'
+set -g status-right '#{battery_status_fg}#{battery_percentage} #[fg=white]< #[fg=green,bg=default]#(cut -d " " -f 1-3 /proc/loadavg) #[fg=white]< #[fg=magenta]%H:%M #[fg=default,bg=default]'
