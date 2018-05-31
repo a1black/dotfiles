@@ -136,6 +136,8 @@ elif which xclip >/dev/null 2>&1 ; then
     alias pbcopy='xclip -selection -c'
     alias pbpaste='xclip -selection clipboard -o'
 fi
+# Show process total memory usage.
+alias memtotal="smem -t -k -c pss -P"
 # Kill Chrome processes.
 alias killchrome="ps -C chrome | grep chrome | awk '{print \$1}' | xargs -r kill -9"
 # Disable display
