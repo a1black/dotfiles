@@ -315,6 +315,7 @@ Plug 'w0rp/ale'                        " Lint engine
 Plug 'majutsushi/tagbar'               " On-the-fly in-memory tags creation
 "Plug 'xolox/vim-easytags'              " Automated tag generation
 "Plug 'Valloric/YouCompleteMe'          " Code completion tool
+Plug 'ludovicchabant/vim-gutentags'    " Automated tag generation
 
 " HTML/CSS/JS related packages
 "Plug 'elzr/vim-json'                   " JSON syntax highlight
@@ -329,7 +330,7 @@ Plug 'shawncplus/phpcomplete.vim', {'for': 'php'}     " PHP code completion
 
 " PYTHON related packages
 "Plug 'klen/python-mode', {'for': 'python'}            " Tool set for python development
-"Plug 'davidhalter/jedi-vim', {'for': 'python'}        " Code autocompletion for python
+Plug 'davidhalter/jedi-vim', {'for': 'python'}        " Code autocompletion for python
 call plug#end()
 " }}}1
 " Section: Mappings {{{1

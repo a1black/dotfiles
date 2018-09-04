@@ -93,7 +93,9 @@ wpower() {
     local plugged=$(cat <<< $battery_info | awk '/state:/ {print $2}')
     # Remain energy in percents.
     local energy_left=$(cat <<< $battery_info | awk '/percentage:/ {print 0+$2}')
-    if [ "${plugged,,}" = 'charging' ]; then
+    if [ "$energy_left" -eq 0 ]; then
+        return 1
+    elif [ "${plugged,,}" = 'charging' ]; then
         # Prints out charging information.
         printf "\u26a1%d%%" $energy_left
     else
@@ -393,7 +395,7 @@ function _prompt_uid_color() {
 # Return python virtualenv prompt component.
 function _prompt_virtualenv() {
     if [ -n "$VIRTUAL_ENV" ]; then
-        printf '\001%s%s\002  \u24d4 %s \001%s\002' $revs $violet $(basename $VIRTUAL_ENV) $reset
+        printf '\001%s%s\002 \u24d4 %s \001%s\002' $revs $violet $(basename $VIRTUAL_ENV) $reset
     fi
 }
 # }}}1
