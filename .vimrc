@@ -58,7 +58,6 @@ if exists('+breakindent')         " same as +linebreak
     set showbreak=+>\             " String to put at the start of lines that have been wrapped
 else
     set nowrap                    " Do not wrap lines which longer then viewpoint width
-    set textwidth=0               " Disable line width restriction
 endif
 set relativenumber                " Show line number relative to the current line
 set number                        " Show current line number
@@ -73,7 +72,6 @@ set display+=lastline
 set noshowcmd                     " Show (partial) command in status line
 set incsearch                     " Highlight matches while typing search pattern
 set hlsearch                      " Highlight search matches
-set foldmethod=marker
 set foldopen+=jump
 set list                          " Show 'invisible' characters
 if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
@@ -141,7 +139,8 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_open_list = 0
 let g:ale_sign_column_always = 1
 let g:ale_set_highlights = 0
-let g:ale_maximum_file_size = 51200
+let g:ale_max_signs = 30
+let g:ale_maximum_file_size = 20480
 " Error message format.
 let g:ale_echo_cursor = 1
 let g:ale_echo_msg_error_str = 'E'
@@ -172,6 +171,7 @@ let g:airline#extensions#tagbar#enabled = 1
 let g:airline#extensions#hunks#enabled = 1
 let g:airline#extensions#ale#enabled = 1
 let g:airline#extensions#syntastic#enabled = 0
+let g:airline#extensions#virtualenv#enabled = 1
 " }}}3
 " Startify {{{3
 let g:startify_bookmarks = []
@@ -279,7 +279,6 @@ Plug 'mhinz/vim-startify'              " Fancy start screen
 
 " Miscellaneous plugins
 Plug 'a1black/vimisc'                   " My Vim commands
-"Plug 'xolox/vim-misc'                  " Library required for all plugins by Xolox
 
 " Filesystem and search
 "Plug 'scrooloose/nerdtree'             " File system tree explorer
@@ -290,7 +289,6 @@ Plug 'ctrlpvim/ctrlp.vim'              " Fuzzy finder
 " Editing tools
 Plug 'scrooloose/nerdcommenter'        " Code commenting tool
 Plug 'godlygeek/tabular'               " Text aligning
-"Plug 'vimwiki/vimwiki'                 " Personal Wiki for Vim :meh
 "Plug 'mtth/scratch.vim'                " Note taking
 Plug 'tpope/vim-surround'              " Surrounding text with quoates and tags (HTML)
 Plug 'a1black/vim-quickfixtoggle'      " Quickfix window toggling
@@ -313,8 +311,6 @@ Plug 'w0rp/ale'                        " Lint engine
 "Plug 'tpope/vim-dispatch'              " :Make command for Vim.
 "Plug 'janko-m/vim-test'                " Test invokation plugin
 Plug 'majutsushi/tagbar'               " On-the-fly in-memory tags creation
-"Plug 'xolox/vim-easytags'              " Automated tag generation
-"Plug 'Valloric/YouCompleteMe'          " Code completion tool
 Plug 'ludovicchabant/vim-gutentags'    " Automated tag generation
 
 " HTML/CSS/JS related packages
@@ -324,13 +320,16 @@ Plug 'ludovicchabant/vim-gutentags'    " Automated tag generation
 "Plug 'mattn/emmet-vim'                 " HTML5 and XML programming enhantment
 
 " PHP related packages
-Plug 'StanAngeloff/php.vim'                           " Syntax highlight
-Plug 'vim-php/tagbar-phpctags.vim', {'for': 'php'}    " Enhanced Tagbar for PHP code
-Plug 'shawncplus/phpcomplete.vim', {'for': 'php'}     " PHP code completion
+Plug 'StanAngeloff/php.vim'                             " Syntax highlight
+Plug 'vim-php/tagbar-phpctags.vim', {'for': 'php'}      " Enhanced Tagbar for PHP code
+Plug 'shawncplus/phpcomplete.vim'                       " PHP code completion
 
 " PYTHON related packages
-"Plug 'klen/python-mode', {'for': 'python'}            " Tool set for python development
-Plug 'davidhalter/jedi-vim', {'for': 'python'}        " Code autocompletion for python
+Plug 'vim-python/python-syntax', {'for': 'python'}      " Syntax highlight
+Plug 'tmhedberg/SimpylFold', {'for': 'python'}          " Enhanced python code folding
+Plug 'davidhalter/jedi-vim', {'for': 'python'}          " Code autocompletion for python
+Plug 'plytophogy/vim-virtualenv', {'for': 'python'}     " Python virtualenv support
+"Plug 'python-rope/ropevim', {'for': 'python'}           " Code refactoring
 call plug#end()
 " }}}1
 " Section: Mappings {{{1
@@ -477,4 +476,4 @@ elseif filereadable(expand('~/.vimrc.local'))
     source ~/.vimrc.local
 endif
 
-" vi: fdm=marker ts=4 sw=4 et
+" vim: fdm=marker ts=4 sw=4 et tw=0
