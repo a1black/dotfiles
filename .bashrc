@@ -123,6 +123,25 @@ genpass() {
     fi
     tr -dc '[:alnum:]' < /dev/urandom | fold -w $len | head -n $choices
 }
+# Function for toggling touchpad state.
+togtouch() {
+    if which xinput &> /dev/null; then
+        local id state
+        id=$(xinput list --short 2> /dev/null | awk 'tolower($0) ~ /touchpad/ {match($0,"(id=)([0-9]+)",mch);exit}END{print mch[2]}')
+        [ -z "$id" ] && return 1
+        state=$(xinput list-props "$id" | awk -F: '/Device Enabled/ {print 0+$2}' 2> /dev/null)
+        if [ "$state" -eq 1 ]; then
+            xinput disable "$id" &> /dev/null
+            echo "Touchpad is disabled"
+        else
+            xinput enable "$id" &> /dev/null
+            # Try to enable touchpad via synaptics (Xorg input driver).
+            # It fixes unresponsive pointer problem.
+            which synclient &> /dev/null && synclient TouchpadOff=0t
+            echo "Touchpad is enabled"
+        fi
+    fi
+}
 # }}}1
 
 # Alias definitions. {{{1
