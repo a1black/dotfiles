@@ -450,4 +450,12 @@ if [ -f $HOME/.fzf.bash ]; then
 fi
 # }}}1
 
+# python virtualenv settings. {{{1
+if command -v virtualenvwrapper_lazy.sh &> /dev/null; then
+    export VIRTUALENVWRAPPER_PYTHON=$(command -v python3 2> /dev/null)
+    export VIRTUALENVWRAPPER_HOOK_DIR=$HOME/.config/virtualenvwrapper
+    export WORKON_HOME=$HOME/.virtualenvs
+    source "$(command -v virtualenvwrapper_lazy.sh 2> /dev/null)"
+fi
+
 # vi: ft=sh fdm=marker ts=4 sw=4 et

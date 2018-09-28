@@ -326,7 +326,7 @@ Plug 'shawncplus/phpcomplete.vim'                       " PHP code completion
 
 " PYTHON related packages
 Plug 'vim-python/python-syntax', {'for': 'python'}      " Syntax highlight
-Plug 'tmhedberg/SimpylFold', {'for': 'python'}          " Enhanced python code folding
+"Plug 'tmhedberg/SimpylFold', {'for': 'python'}          " Enhanced python code folding
 Plug 'davidhalter/jedi-vim', {'for': 'python'}          " Code autocompletion for python
 Plug 'plytophogy/vim-virtualenv', {'for': 'python'}     " Python virtualenv support
 "Plug 'python-rope/ropevim', {'for': 'python'}           " Code refactoring
