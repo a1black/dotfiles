@@ -125,7 +125,7 @@ genpass() {
 }
 # Function for toggling touchpad state.
 togtouch() {
-    if which xinput &> /dev/null; then
+    if command -v xinput &> /dev/null; then
         local id state
         id=$(xinput list --short 2> /dev/null | awk 'tolower($0) ~ /touchpad/ {match($0,"(id=)([0-9]+)",mch);exit}END{print mch[2]}')
         [ -z "$id" ] && return 1
@@ -137,9 +137,17 @@ togtouch() {
             xinput enable "$id" &> /dev/null
             # Try to enable touchpad via synaptics (Xorg input driver).
             # It fixes unresponsive pointer problem.
-            which synclient &> /dev/null && synclient TouchpadOff=0t
+            command -v synclient &> /dev/null && synclient TouchpadOff=0
             echo "Touchpad is enabled"
         fi
+    fi
+}
+# Functio for toggling wifi state.
+togwifi() {
+    if command -v nmcli &> /dev/null; then
+        local action=$(nmcli -c no -m multiline r wifi | grep -c enabled | sed -e 's/1/off/; s/0/on/')
+        nmcli radio wifi $action &> /dev/null
+        echo "Wi-Fi is $action"
     fi
 }
 # }}}1
@@ -161,10 +169,10 @@ alias l1='ls -1F --escape --group-directories-first'
 # Php
 alias phpcsfix='php-cs-fix fix --verbose --show-progress=dots'
 # X clipboard
-if which xsel >/dev/null 2>&1 ; then
+if command -v xsel &> /dev/null; then
     alias pbcopy='xsel -i -b'
     alias pbpaste='xsel -o -b'
-elif which xclip >/dev/null 2>&1 ; then
+elif command -v xclip &> /dev/null; then
     alias pbcopy='xclip -selection -c'
     alias pbpaste='xclip -selection clipboard -o'
 fi
@@ -315,7 +323,7 @@ function _git_status_fetch() { #{{{2
 # Return simple git status string.
 function _prompt_git_status_simple() { #{{{2
     # Check if current directory is git working tree.
-    ! git rev-parse --is-inside-work-tree > /dev/null 2>&1 && return
+    ! git rev-parse --is-inside-work-tree &> /dev/null && return
     # Check if the current directory is ".git".
     [ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ] && return
     # Do `git fetch`.
@@ -326,7 +334,7 @@ function _prompt_git_status_simple() { #{{{2
     local marks=''
     local bc=$green
     # Update index.
-    git update-index --really-refresh -q > /dev/null 2>&1
+    git update-index --really-refresh -q &> /dev/null
     # Staged changes.
     ! git diff --quiet --ignore-submodules --cached && marks+='*' && bc=$yellow
     # Unstaged changes.
@@ -336,7 +344,7 @@ function _prompt_git_status_simple() { #{{{2
     # Unmerged files.
     [ $(git ls-files --unmerged | wc -l) -ne 0 ] && marks+='!' && bc=$red
     # Stashed changes.
-    git rev-parse --verify refs/stash > /dev/null 2>&1 && marks+='#'
+    git rev-parse --verify refs/stash &> /dev/null && marks+='#'
     # Form git status string.
     if [[ -z "$branch" && -z "$brcom" ]]; then branch='(unknown)'
     elif [ -z "$branch" ]; then branch="$brcom"
@@ -349,7 +357,7 @@ function _prompt_git_status_simple() { #{{{2
 # Return detailed git status string.
 function _prompt_git_status_detailed() { #{{{2
     # Check if current directory is git working tree.
-    ! git rev-parse --is-inside-work-tree > /dev/null 2>&1 && return
+    ! git rev-parse --is-inside-work-tree &> /dev/null && return
     # Check if the current directory is ".git".
     [ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ] && return
     # Do `git fetch`.
@@ -415,7 +423,7 @@ function _prompt_git_status_detailed() { #{{{2
 function _prompt_uid_color() {
     if [ $UID -eq 0 ]; then
         printf '\001%s\002\001%s\002' $bold $red
-    elif sudo -n true > /dev/null 2>&1; then
+    elif sudo -n true &> /dev/null; then
         printf '\001%s\002\001%s\002' $bold $purple
     else
         printf '\001%s\002' $orange
@@ -447,7 +455,7 @@ export PS1
 PS2="\[$yellow\]→ \[$reset\]"
 export PS2
 # Enable powerline plugin (see github.com/powerline/powerline)
-if [[ $POWERLINE_ENABLE -eq 1 && -e $POWERLINE_HOME/bash/powerline.sh ]] && powerline -h > /dev/null 2>&1; then
+if [[ $POWERLINE_ENABLE -eq 1 && -e $POWERLINE_HOME/bash/powerline.sh ]] && powerline -h &> /dev/null; then
     powerline-daemon -q
     POWERLINE_BASH_CONTINUATION=1
     POWERLINE_BASH_SELECT=1
