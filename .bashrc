@@ -57,7 +57,7 @@ export POWERLINE_ENABLE=0
 # Disable TTY XOFF flow control command (Ctrl+S)
 stty -ixon
 # less history file.
-export LESS='-iFJMRs'
+export LESS='-iXFJMRs'
 export LESSHISTFILE="/dev/null"
 # }}}1
 
