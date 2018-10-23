@@ -168,6 +168,7 @@ alias lc='ls -CF --escape --group-directories-first'
 alias l1='ls -1F --escape --group-directories-first'
 # Php
 alias phpcsfix='php-cs-fix fix --verbose --show-progress=dots'
+alias phptags='ctags --languages=Php --map-Php=+.phpt -h ".php" --fields=+Saim -R --totals=yes --exclude=".git"'
 # X clipboard
 if command -v xsel &> /dev/null; then
     alias pbcopy='xsel -i -b'

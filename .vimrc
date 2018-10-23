@@ -112,6 +112,10 @@ endif
 " }}}2
 " Subsection: Plugin Settings {{{2
 "--------------------
+" netrw Settings {{{3
+" netrw has a bug where sorting items marks buffer as modified therefore preventing it from closing.
+let g:netrw_liststyle = 1
+" }}}3
 " CtrlP Settings {{{3
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files . -co --exclude-standard', 'find %s -type f']
 let g:ctrlp_map = '<c-p>'
@@ -148,7 +152,7 @@ let g:ale_echo_msg_info_str = 'I'
 let g:ale_echo_msg_warning_str = 'W'
 " }}}3
 " PHPComplete {{{3
-let g:phpcomplete_parse_docblock_comments = 1
+let g:phpcomplete_parse_docblock_comments = 0
 let g:phpcomplete_add_class_extensions = ['pthreads']
 let g:phpcomplete_add_constant_extensions = ['pthreads']
 let g:phpcomplete_remove_function_extensions = ['memcache', 'mysql', 'sqlite']
@@ -218,12 +222,16 @@ let g:vim_markdown_conceal = 0
 let g:php_html_load = 0
 let g:php_sql_query = 0
 " }}}3
+" Gutentags {{{3
+let g:gutentags_file_list_command = { 'markers': { '.git': 'git ls-files . -co --exclude-standard'} }
+"let g:gutentags_ctags_executable_php = 'phpctags'
+" }}}3
 " }}}2
 " }}}1
 " Section: Commands {{{1
 "--------------------
-command! -bar -count=0 RFC :edit http://www.ietf.org/rfc/rfc<count>.txt|setl ro noma
-command! -bar -nargs=? -bang Scratch :silent e<bang> Sess-Notes|set buftype=nofile bufhidden=hide noswapfile nobuflisted filetype=<args> modifiable
+command! -count=0 RFC :edit http://www.ietf.org/rfc/rfc<count>.txt|setl ro noma
+command! -nargs=? -bang Scratch :silent e<bang> Sess-Notes|setl buftype=nofile bufhidden=hide noswapfile nobuflisted filetype=<args> modifiable
 
 let s:my_clr=['gruvbox', 'hybrid', 'jellybeans', 'solarized']
 for s:clr in s:my_clr
@@ -245,6 +253,16 @@ function! s:Open_url_in_cmd_brouser()
     endif
     call setreg('/', l:oldreg)
     execute 'normal ``'
+endfunction
+
+command! -bar -nargs=1 Retab :call <SID>Retab_buffer(<f-args>)
+function! s:Retab_buffer(ts)
+    let l:ts=&tabstop
+    let l:sts=&softtabstop
+    execute 'setlocal tabstop='.a:ts.' softtabstop='.a:ts.' noexpandtab'
+    silent retab!
+    execute 'setlocal tabstop='.l:ts.' softtabstop='.l:sts.' expandtab'
+    silent retab!
 endfunction
 " }}}1
 " Section: Plugins {{{1
@@ -361,6 +379,10 @@ nnoremap <silent> <leader>wq :exit<CR>
 nnoremap <silent> <leader>qa :qall!<CR>
 nnoremap <silent> <leader>bd :lclose<CR>:bdelete<CR>
 nnoremap <silent> <leader>x :close<CR>
+" netrw
+if empty(maparg('-', 'n'))
+    nnoremap <silent> - :Explore<CR>
+endif
 
 map      <silent> <F1> <Esc>g<C-G>
 map!     <silent> <F1> <Esc>g<C-G>
@@ -369,7 +391,7 @@ nnoremap <silent> <F2> :pclose<CR>
 nnoremap <silent> <F3> :Ltoggle<CR>
 nnoremap <silent> <F4> :Ltoggle!<CR>
 nnoremap <silent> <F5> :if exists(':TagbarToggle')<Bar>exe 'TagbarToggle'<Bar>else<Bar>echoerr 'Tagbar is not available.'<Bar>endif<CR>
-nnoremap <silent> <F6> :if &previewwindow<Bar>pclose<Bar>elseif exists(':Gdiff')<Bar>exe 'Gdiff'<Bar>else<Bar>echoerr 'Fugitive is not available.'<Bar>endif<CR>
+nnoremap <silent> <F6> :if ! empty(getwinvar(winnr(), 'fugitive_diff_restore', 0))<Bar>close<Bar>elseif exists(':Gdiff')<Bar>exe 'Gdiff'<Bar>else<Bar>echoerr 'Fugitive is not available.'<Bar>endif<CR>
 nnoremap <silent> <F7> :echo '<F7>'<CR>
 nnoremap <silent> <F8> :echo '<F8>'<CR>
 nmap     <silent> <F9> :echo '<F9>'<CR>
@@ -382,7 +404,11 @@ nmap <Leader>hs <Plug>GitGutterStageHunk
 nmap <Leader>hu <Plug>GitGutterUndoHunk
 nmap <Leader>hp <Plug>GitGutterPreviewHunk
 " Movement
-nnoremap <leader>wg :<C-U>execute v:count.' wincmd w'<CR>
+nnoremap <leader>wg :<C-U>silent execute v:count.' wincmd w'<CR>
+nmap [w <C-W>h
+nmap ]w <C-W>l
+nmap [W <C-W>j
+nmap ]W <C-W>k
 nmap [h <Plug>GitGutterPrevHunk
 nmap ]h <Plug>GitGutterNextHunk
 nmap [s <Plug>(ale_previous_wrap)
@@ -423,6 +449,8 @@ if has('autocmd')
         autocmd FileType help nnoremap <silent><buffer> q :q<CR>
         autocmd FileType git,gitcommit setlocal foldmethod=syntax foldlevel=1
         autocmd FileType gitcommit setlocal spell
+        autocmd FileType scss,sass setlocal tabstop=2 shiftwidth=2
+        autocmd FileType html,scss,sass,css,javascript let g:gutentags_enabled=0
         autocmd FileType * if exists("+omnifunc") && &omnifunc == "" | setlocal omnifunc=syntaxcomplete#Complete | endif
         autocmd FileType * if exists("+completefunc") && &completefunc == "" | setlocal completefunc=syntaxcomplete#Complete | endif
     augroup END " }}}2
