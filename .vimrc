@@ -146,18 +146,17 @@ let g:ale_set_highlights = 0
 let g:ale_max_signs = 30
 let g:ale_maximum_file_size = 20480
 " Error message format.
-let g:ale_echo_cursor = 1
+let g:ale_echo_cursor = 0
 let g:ale_echo_msg_error_str = 'E'
 let g:ale_echo_msg_info_str = 'I'
 let g:ale_echo_msg_warning_str = 'W'
 " }}}3
 " PHPComplete {{{3
-let g:phpcomplete_parse_docblock_comments = 0
-let g:phpcomplete_add_class_extensions = ['pthreads']
-let g:phpcomplete_add_constant_extensions = ['pthreads']
-let g:phpcomplete_remove_function_extensions = ['memcache', 'mysql', 'sqlite']
-let g:phpcomplete_remove_class_extensions = ['memcache']
-let g:phpcomplete_remove_constant_extensions = ['memcache', 'mysql', 'sqlite']
+"let g:phpcomplete_add_class_extensions = ['pthreads']
+"let g:phpcomplete_add_constant_extensions = ['pthreads']
+"let g:phpcomplete_remove_function_extensions = ['memcache', 'mysql', 'sqlite']
+"let g:phpcomplete_remove_class_extensions = ['memcache']
+"let g:phpcomplete_remove_constant_extensions = ['memcache', 'mysql', 'sqlite']
 " }}}3
 " NERDTree Settings {{{3
 let g:NERDTreeNaturalSort = 1
@@ -282,7 +281,7 @@ call plug#begin('~/.vim/plug.vim.bundle')
 Plug 'altercation/vim-colors-solarized'
 Plug 'nanotech/jellybeans.vim'
 Plug 'morhetz/gruvbox'
-Plug 'w0ng/vim-hybrid'
+Plug 'a1black/vim-hybrid'
 
 " Visual goodies
 Plug 'vim-airline/vim-airline'         " Prity statusline
@@ -309,6 +308,7 @@ Plug 'scrooloose/nerdcommenter'        " Code commenting tool
 Plug 'godlygeek/tabular'               " Text aligning
 "Plug 'mtth/scratch.vim'                " Note taking
 Plug 'tpope/vim-surround'              " Surrounding text with quoates and tags (HTML)
+Plug 'kana/vim-textobj-line'           " Adds text object l (line), like `iw`
 Plug 'a1black/vim-quickfixtoggle'      " Quickfix window toggling
 
 " Vim functionality enhancement
@@ -340,7 +340,7 @@ Plug 'ludovicchabant/vim-gutentags'    " Automated tag generation
 " PHP related packages
 Plug 'StanAngeloff/php.vim'                             " Syntax highlight
 Plug 'vim-php/tagbar-phpctags.vim', {'for': 'php'}      " Enhanced Tagbar for PHP code
-Plug 'shawncplus/phpcomplete.vim'                       " PHP code completion
+"Plug 'shawncplus/phpcomplete.vim'                       " PHP code completion
 
 " PYTHON related packages
 Plug 'vim-python/python-syntax', {'for': 'python'}      " Syntax highlight
@@ -373,6 +373,7 @@ nnoremap <silent> <C-w><C-j> :resize +5<CR>
 nnoremap <silent> <C-w><C-k> :resize -5<CR>
 nnoremap <silent> <C-w><C-l> :vertical resize +5<CR>
 " Save/close shortcats
+nnoremap <C-S> :update<CR>
 nnoremap <leader>s :update<CR>
 nnoremap <leader>S :wall<CR>
 nnoremap <silent> <leader>wq :exit<CR>
@@ -407,8 +408,8 @@ nmap <Leader>hp <Plug>GitGutterPreviewHunk
 nnoremap <leader>wg :<C-U>silent execute v:count.' wincmd w'<CR>
 nmap [w <C-W>h
 nmap ]w <C-W>l
-nmap [W <C-W>j
-nmap ]W <C-W>k
+nmap [W <C-W>k
+nmap ]W <C-W>j
 nmap [h <Plug>GitGutterPrevHunk
 nmap ]h <Plug>GitGutterNextHunk
 nmap [s <Plug>(ale_previous_wrap)
@@ -443,6 +444,7 @@ if has('autocmd')
         autocmd!
         autocmd BufNewFile,BufRead *.todo,*.txt,README,INSTALL,TODO if &ft == '' | set ft=text | endif
         autocmd BufNewFile,BufRead *.phpt set ft=php
+        autocmd BufNewFile,BufRead *.vue set ft=javascript
     augroup END " }}}2
     augroup FileTypeOptions " {{{2
         autocmd!

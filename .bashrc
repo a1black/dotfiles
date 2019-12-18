@@ -168,7 +168,7 @@ alias lc='ls -CF --escape --group-directories-first'
 alias l1='ls -1F --escape --group-directories-first'
 # Php
 alias phpcsfix='php-cs-fix fix --verbose --show-progress=dots'
-alias phptags='ctags --languages=Php --map-Php=+.phpt -h ".php" --fields=+Saim -R --totals=yes --exclude=".git"'
+alias phptags='ctags --languages=Php --map-Php=+.phpt -h ".php" --fields=+Saiml -R --totals=yes --exclude=".git"'
 # X clipboard
 if command -v xsel &> /dev/null; then
     alias pbcopy='xsel -i -b'
@@ -468,7 +468,7 @@ fi
 if [ -f $HOME/.fzf.bash ]; then
     . $HOME/.fzf.bash
     FZF_DEFAULT_OPTS='--no-height --no-reverse'
-    FZF_CTRL_T_OPTS='--select-1 --exit-0'
+    FZF_CTRL_T_OPTS='--select-1 --exit-0 --color=bw'
     FZF_CTRL_T_OPTS+=' --preview "(highlight -O ansi -l {} 2> /dev/null || cat {} || ls --color=always -1 {}) 2> /dev/null | head -100"'
     FZF_CTRL_R_OPTS='--preview "echo {}" --preview-window down:3:hidden:wrap --bind "?:toggle-preview"'
 
@@ -485,5 +485,11 @@ if command -v virtualenvwrapper_lazy.sh &> /dev/null; then
     export WORKON_HOME=$HOME/.virtualenvs
     source "$(command -v virtualenvwrapper_lazy.sh 2> /dev/null)"
 fi
+# }}}1
+
+# java sdkman settings. {{{1
+export SDKMAN_DIR="$HOME/Soft/sdkman"
+[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+# }}}1
 
 # vi: ft=sh fdm=marker ts=4 sw=4 et
