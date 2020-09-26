@@ -1,12 +1,14 @@
+# Note: difference between [ and [[ -  https://stackoverflow.com/a/3427931
 ## Load login shell configuration file.
-[ -f $HOME/.profile ] && . $HOME/.profile
+[[ -s $HOME/.profile ]] && . $HOME/.profile
 
-# Setup shell enviroment variables. {{{1
+# Setup shell enviroment variables. {{{
 export EDITOR='vim'
 export LANG='en_US.UTF-8'
 export LC_COLLATE='en_US.UTF-8'
 # Make python use UTF-8 encoding.
 export PYTHONIOENCODING='UTF-8'
+export PYTHONDONTWRITEBYTECODE=1
 # don't put duplicate lines or lines starting with space in the history.
 export HISTCONTROL=ignoredups
 export HISTCONTROL=ignoreboth
@@ -14,9 +16,9 @@ export HISTCONTROL=ignoreboth
 export HISTIGNORE="clear:dir:ls:l[clw1]:[bf]g:exit:%[0-9]:top:htop"
 export HISTSIZE=4000
 export HISTFILESIZE=4000
-# }}}1
+# }}}
 
-# Bash Shell options. {{{1
+# Bash Shell options. {{{
 shopt -so vi
 shopt -s histappend
 shopt -s checkwinsize
@@ -30,7 +32,7 @@ shopt -s autocd
 shopt -s globstar
 # Case-insensitive globbing (used in pathname expansion).
 shopt -s nocaseglob
-# }}}1
+# }}}
 
 # If not running interactively, don't do anything
 case $- in
@@ -38,28 +40,30 @@ case $- in
       *) return;;
 esac
 
-# Prompt autocomplition. {{{1
+# Prompt autocomplition. {{{
 # enable bash completion in interactive shells
-if ! shopt -oq posix && [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
+export BASH_COMPLETION_USER_FILE="$HOME/.local/share/bash-completion/bash_completion"
+if ! shopt -oq posix ; then
+    [[ -f /etc/bash_completion ]] && . /etc/bash_completion
 fi
-# }}}1
+# }}}
 
-# Software settings. {{{1
+# Software settings. {{{
 # Enable periodic `git fetch` in current directory.
 export PS1_GIT_FETCH_ENABLE=0
+export PS1_GIT_FETCH_TIMER=600  # Number of seconds before next fetch.
 # Battery energy below this PS1 will have remain charge indicator.
 export PS1_LOW_BATTERY_ENERGY=60
-# Enable Powerline statusline plugin.
-export POWERLINE_ENABLE=0
+# Max length of virtual enviroment in PS1.
+export PS1_ENV_NAME_LEN=14
 # make less more friendly for non-text input files, see lesspipe(1).
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+[[ -x /usr/bin/lesspipe ]] && eval "$(SHELL=/bin/sh lesspipe)"
 # Disable TTY XOFF flow control command (Ctrl+S)
 stty -ixon
 # less history file.
 export LESS='-iXFJMRs'
 export LESSHISTFILE="/dev/null"
-# }}}1
+# }}}
 
 # User defined commands. {{{1
 # Create and switch directory.
@@ -70,7 +74,7 @@ mkcd() {
 # System shutdown.
 medown() {
     local subcmd=''
-    [ "$1" != 'now' ] && { sudo apt-get update -qq;sudo apt-get -qq upgrade; }
+    [[ "$1" != 'now' ]] && { sudo apt-get update -qq; sudo apt-get -qq upgrade; }
     shutdown -h now
 }
 # Travel up the tree.
@@ -81,21 +85,21 @@ up() {
     done
     cd $path
 }
-# Simple wrap for upower util for providing short battery remain charge.
+# Simple wrap for upower util for providing short battery remain charge. {{{2
 wpower() {
     local battery_id battery_info
     battery_id=$(upower -e 2> /dev/null | grep -m 1 battery)
-    [ -z "$battery_id" ] && return 1
+    [[ -z "$battery_id" ]] && return 1
     battery_info=$(upower -i $battery_id 2> /dev/null | \
         sed -n -E '/state:/p;/percentage:/p;/(remain|time to [a-z]+):/p')
-    [ -z "$battery_info" ] && return 1
+    [[ -z "$battery_info" ]] && return 1
     # Charging/discharging state.
     local plugged=$(cat <<< $battery_info | awk '/state:/ {print $2}')
     # Remain energy in percents.
     local energy_left=$(cat <<< $battery_info | awk '/percentage:/ {print 0+$2}')
-    if [ "$energy_left" -eq 0 ]; then
+    if [[ "$energy_left" == 0 ]]; then
         return 1
-    elif [ "${plugged,,}" = 'charging' ]; then
+    elif [[ "${plugged,,}" == 'charging' ]]; then
         # Prints out charging information.
         printf "\u26a1%d%%" $energy_left
     else
@@ -112,25 +116,25 @@ wpower() {
         printf "%d%% %d:%02d" $energy_left $(($time_left / 60)) $(($time_left % 60))
     fi
 }
-# Function for generating passwords.
+# Function to generating passwords. {{{2
 genpass() {
     local len=8 choices=1
-    if [[ "$1" =~ ^[0-9]+$ ]] && [[ "$1" -gt 7 ]]; then
+    if [[ "$1" =~ ^[0-9]+$ && "$1" -gt 7 ]]; then
         len="$1"
     fi
-    if [[ "$2" =~ ^[0-9]+$ ]] && [[ "$2" -gt 1 ]]; then
+    if [[ "$2" =~ ^[0-9]+$ && "$2" -gt 1 ]]; then
         choices="$2"
     fi
     tr -dc '[:alnum:]' < /dev/urandom | fold -w $len | head -n $choices
 }
-# Function for toggling touchpad state.
+# Function to toggling touchpad state. {{{2
 togtouch() {
     if command -v xinput &> /dev/null; then
         local id state
-        id=$(xinput list --short 2> /dev/null | awk 'tolower($0) ~ /touchpad/ {match($0,"(id=)([0-9]+)",mch);exit}END{print mch[2]}')
-        [ -z "$id" ] && return 1
+        id=$(xinput list --short 2> /dev/null | sed -n '/touchpad/Is/.*id=\([0-9]\+\).*/\1/p')
+        [[ -z "$id" ]] && return 1
         state=$(xinput list-props "$id" | awk -F: '/Device Enabled/ {print 0+$2}' 2> /dev/null)
-        if [ "$state" -eq 1 ]; then
+        if [[ "$state" -eq 1 ]]; then
             xinput disable "$id" &> /dev/null
             echo "Touchpad is disabled"
         else
@@ -142,7 +146,7 @@ togtouch() {
         fi
     fi
 }
-# Functio for toggling wifi state.
+# Function to toggling wifi state. {{{2
 togwifi() {
     if command -v nmcli &> /dev/null; then
         local action=$(nmcli -c no -m multiline r wifi | grep -c enabled | sed -e 's/1/off/; s/0/on/')
@@ -152,12 +156,12 @@ togwifi() {
 }
 # }}}1
 
-# Alias definitions. {{{1
+# Alias definitions. {{{
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 # Enable colored output.
-if [ -x /usr/bin/dircolors ]; then
+if [[ -x /usr/bin/dircolors ]]; then
     alias ls='ls --color=auto'
     alias grep='grep --color=auto'
 fi
@@ -181,11 +185,13 @@ fi
 alias memtotal="smem -t -k -c pss -P"
 # Kill Chrome processes.
 alias killchrome="ps -C chrome | grep chrome | awk '{print \$1}' | xargs -r kill -9"
+# Kill VLC processes.
+alias killvlc="ps -C vlc | grep vlc | awk '{print \$1}' | xargs -r kill -9"
 # Disable display
 alias doff="xset -display :0.0 dpms force off"
-# }}}1
+# }}}
 
-# Solarized theme prompt colors. {{{1
+# Solarized theme prompt colors. {{{
 reset=$'\e[0m'
 bold=$'\e[1m'
 underline=$'\e[4m'
@@ -215,9 +221,9 @@ else
     white=$'\e[97m'
     yellow=$'\e[33m'
 fi;
-# }}}1
+# }}}
 
-# Command color output setup. {{{1
+# Command color output setup. {{{
 # Highlight section titles in manual pages.
 export LESS_TERMCAP_mb=$blink$red        # begin blinking
 export LESS_TERMCAP_md=$bold$yellow      # begin bold
@@ -233,12 +239,12 @@ export CLICOLOR=1
 LS_COLORS='no=00:fi=00:di=01;31:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:ow=34;47:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=47;04;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.mp4=01;35:*.mkv=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:*.php=00;32:*.py=00;95:*.pyc=00;40:*.conf=00;31:*rc=00;31:*.sh=00;34:'
 export LS_COLORS
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-# }}}1
+# }}}
 
 ## Primary and secondary prompt string customization.
 # Statusline customization functions. {{{1
-# Display sortend pwd.
-function _prompt_short_pwd() { #{{{2
+# Display sortend pwd. {{{2
+function _prompt_short_pwd() {
     begin=""
     homebegin=""
     shortbegin=""
@@ -248,21 +254,21 @@ function _prompt_short_pwd() { #{{{2
     shortenedpath="$end"
     shopt -q nullglob && NGV="-s" || NGV="-u"
     shopt -s nullglob
-    while [ -n "$end" ]; do
+    while [[ -n "$end" ]]; do
         current="${end%%/*}" # Everything before the first /
         end="${end#*/}" # Everything after the first /
         shortcur="$current"
         for ((i=${#current}-2; i>=0; i--)); do
-            [ ${#current} -le 20 ] && [ -z "$end" ] && break
+            [[ ${#current} -le 20 && -z "$end" ]] && break
             subcurrent="${current:0:i}"
             # Array of all files that start with $subcurrent.
             matching=("$begin/$subcurrent"*)
             # Stop shortening if more than one file matches.
             (( ${#matching[*]} != 1 )) && break
             # Add character filler at the end of this string.
-            [ -z "$end" ] && shortcur="$subcurrent..."
+            [[ -z "$end" ]] && shortcur="$subcurrent..."
             # Add character filler at the end of this string.
-            [ -n "$end" ] && shortcur="$subcurrent+"
+            [[ -n "$end" ]] && shortcur="$subcurrent+"
         done
         begin="$begin/$current"
         homebegin="$homebegin/$current"
@@ -283,18 +289,18 @@ function _prompt_short_pwd() { #{{{2
     shopt "$NGV" nullglob
 } #}}}2
 
-# Display battery indicator on low remain energy.
+# Display battery indicator on low remain energy. {{{2
 # Args:
 #   -bg     colorize output using background
 function _prompt_low_energy() {
     local info=$(wpower)
-    [ -z "$info" ] && return 1
+    [[ -z "$info" ]] && return 1
     local energy_left=$(cat <<< "$info" | grep -oP '\d+(?=%)' | awk '{print 0+$1}')
     local energy_low=$(awk -v low="$PS1_LOW_BATTERY_ENERGY" 'BEGIN{print 0+low}')
     ((energy_low > 0 && energy_left > 0 && energy_left > energy_low)) && return 0
     # Colorize output.
     local clr bg=0
-    [ "$1" = '-bg' ] && bg=1
+    [[ "$1" == '-bg' ]] && bg=1
     if ((energy_left <= 20)); then
         ((bg == 1)) && clr=$'\e[48;5;124m\e[38;5;15m' || clr=$'\e[38;5;124m'
     elif ((energy_left <= 50)); then
@@ -305,28 +311,28 @@ function _prompt_low_energy() {
         ((bg == 1)) && clr=$'\e[48;5;34m\e[38;5;15m' || clr=$'\e[38;5;34m'
     fi
     printf "\001%s\002 %s \001%s\002" $clr "$info" $reset
-}
+} # }}}2
 
-# Do background update of git index every N minutes.
-function _git_status_fetch() { #{{{2
-    [ "$PS1_GIT_FETCH_ENABLE" != '1' ] && return 0
+# Do background update of git index every N minutes. {{{2
+function _git_status_fetch() {
+    [[ "$PS1_GIT_FETCH_ENABLE" != 1 ]] && return 0
     local state_cache="$UID-$$"
-    [ ! -e "/dev/shm/$state_cache" ] && date +%s > /dev/shm/$state_cache
+    [[ ! -e "/dev/shm/$state_cache" ]] && date +%s > /dev/shm/$state_cache
     local old_mark=$(cat /dev/shm/$state_cache)
     local new_mark=$(date +%s)
     ((new_mark -= $old_mark))
-    if [ $new_mark -ge 300 ]; then
+    if [[ $new_mark -ge $PS1_GIT_FETCH_TIMER ]]; then
         date +%s > /dev/shm/$state_cache
         git fetch -q &> /dev/null &
     fi
-} #}}}2
+} # }}}2
 
-# Return simple git status string.
-function _prompt_git_status_simple() { #{{{2
+# Return simple git status string. {{{2
+function _prompt_git_status_simple() {
     # Check if current directory is git working tree.
     ! git rev-parse --is-inside-work-tree &> /dev/null && return
     # Check if the current directory is ".git".
-    [ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ] && return
+    [[ $(git rev-parse --is-inside-git-dir 2> /dev/null) == 'true' ]] && return
     # Do `git fetch`.
     _git_status_fetch
     # Branch name.
@@ -341,26 +347,29 @@ function _prompt_git_status_simple() { #{{{2
     # Unstaged changes.
     ! git diff --quiet --ignore-submodules && marks+='+' && bc=$cyan
     # Untracked files.
-    [ $(git ls-files -o --exclude-standard | wc -l) -ne 0 ] && marks+='?'
+    [[ $(git ls-files -o --exclude-standard | wc -l) != 0 ]] && marks+='?'
     # Unmerged files.
-    [ $(git ls-files --unmerged | wc -l) -ne 0 ] && marks+='!' && bc=$red
+    [[ $(git ls-files --unmerged | wc -l) != 0 ]] && marks+='!' && bc=$red
     # Stashed changes.
     git rev-parse --verify refs/stash &> /dev/null && marks+='#'
     # Form git status string.
-    if [[ -z "$branch" && -z "$brcom" ]]; then branch='(unknown)'
-    elif [ -z "$branch" ]; then branch="$brcom"
-#    else branch="$branch($brcom)"
+    if [[ -z "$branch" && -z "$brcom" ]]; then
+        branch='(unknown)'
+    elif [[ -z "$branch" ]]; then
+        branch="$brcom"
+    else
+        branch="$branch($brcom)"
     fi
-    [ -n "$marks" ] && marks=" [$marks] "
+    [[ -n "$marks" ]] && marks=" [$marks] "
     printf '\001%s%s\002 %s \001%s\002%s\001%s\002' $revs $bc "$branch" $blue "$marks" $reset
 } #}}}2
 
-# Return detailed git status string.
-function _prompt_git_status_detailed() { #{{{2
+# Return detailed git status string. {{{2
+function _prompt_git_status_detailed() {
     # Check if current directory is git working tree.
     ! git rev-parse --is-inside-work-tree &> /dev/null && return
     # Check if the current directory is ".git".
-    [ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ] && return
+    [[ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ]] && return
     # Do `git fetch`.
     _git_status_fetch
     # Collect data.
@@ -373,7 +382,7 @@ function _prompt_git_status_detailed() { #{{{2
     [[ $seg_branch =~ ahead[[:space:]]([0-9]+) ]] && ahead=${BASH_REMATCH[1]}
     [[ $seg_branch =~ behind[[:space:]]([0-9]+) ]] && behind=${BASH_REMATCH[1]}
     # Show commit hash if no branch name.
-    [ -z "$branch" ] && branch=$(git rev-parse --short HEAD 2> /dev/null)
+    [[ -z "$branch" ]] && branch=$(git rev-parse --short HEAD 2> /dev/null)
     # Show @upstream if branch names are different.
     [[ -n "$origin" && "$branch" != "$origin" ]] && branch="$branch...$origin"
 
@@ -383,7 +392,7 @@ function _prompt_git_status_detailed() { #{{{2
     while read line; do
         X=${line:0:1} Y=${line:1:1}
         # Process unmerged first, that makes counting staged and unstaged changes easier.
-        if [ "$X" = '?' ]; then
+        if [[ "$X" = '?' ]]; then
             ((untracked++))
             continue
         elif [[ "$X" = 'U' || "$Y" = 'U' ]] || [[ "$X" = 'A' && "$Y" = 'A' ]] || [[ "$X" = 'D' && "$Y" = 'D' ]]; then
@@ -402,27 +411,27 @@ function _prompt_git_status_detailed() { #{{{2
     local bg=$'\e[48;5;236m'
     # Determine branch color.
     local br_clr=$green
-    [ $staged -ne 0 ] && br_clr=$yellow
-    [ $changed -ne 0 ] && br_clr=$cyan
-    [ $unmerged -ne 0 ] && br_clr=$red
+    [[ $staged != 0 ]] && br_clr=$yellow
+    [[ $changed != 0 ]] && br_clr=$cyan
+    [[ $unmerged != 0 ]] && br_clr=$red
     # Display branch name: \u2387 or \ue0a0 glyph.
     printf '\001%s%s\002 \ue0a0 %s \001%s\002' $revs $br_clr "$branch" $reset
-    if [[ $ahead -ne 0 || $behind -ne 0 || $staged -ne 0 || $changed -ne 0 || $unmerged -ne 0 || $untracked -ne 0 || $stashed -ne 0 ]]; then
+    if [[ $ahead != 0 || $behind != 0 || $staged != 0 || $changed != 0 || $unmerged != 0 || $untracked != 0 || $stashed != 0 ]]; then
         printf '\001%s\002' $bg
-        [ $ahead -ne 0 ] && printf ' \001%s\002%s\u21be' $white $ahead
-        [ $behind -ne 0 ] && printf ' \001%s\002%s\u21c2' $red $behind
-        [ $staged -ne 0 ] && printf ' \001%s\002*%s' $yellow $staged
-        [ $changed -ne 0 ] && printf ' \001%s\002+%s' $cyan $changed
-        [ $untracked -ne 0 ] && printf ' \001%s\002..%s' $orange $untracked
-        [ $unmerged -ne 0 ] && printf ' \001%s\002\ud7 %s' $red $unmerged
-        [ $stashed -ne 0 ] && printf ' \001%s\002\u2691 %s' $blue $stashed
+        [[ $ahead != 0 ]] && printf ' \001%s\002%s\u21be' $white $ahead
+        [[ $behind != 0 ]] && printf ' \001%s\002%s\u21c2' $red $behind
+        [[ $staged != 0 ]] && printf ' \001%s\002*%s' $yellow $staged
+        [[ $changed != 0 ]] && printf ' \001%s\002+%s' $cyan $changed
+        [[ $untracked != 0 ]] && printf ' \001%s\002..%s' $orange $untracked
+        [[ $unmerged != 0 ]] && printf ' \001%s\002\ud7 %s' $red $unmerged
+        [[ $stashed != 0 ]] && printf ' \001%s\002\u2691 %s' $blue $stashed
         printf ' \001%s\002' $reset
     fi
 } #}}}2
 
 # Return color accourding to privilages.
 function _prompt_uid_color() {
-    if [ $UID -eq 0 ]; then
+    if [[ $UID == 0 ]]; then
         printf '\001%s\002\001%s\002' $bold $red
     elif sudo -n true &> /dev/null; then
         printf '\001%s\002\001%s\002' $bold $purple
@@ -433,13 +442,20 @@ function _prompt_uid_color() {
 
 # Return python virtualenv prompt component.
 function _prompt_virtualenv() {
-    if [ -n "$VIRTUAL_ENV" ]; then
-        printf '\001%s%s\002 \u24d4 %s \001%s\002' $revs $violet $(basename $VIRTUAL_ENV) $reset
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        local virtenv_name=$(basename $VIRTUAL_ENV)
+        local virtenv_len=${PS1_ENV_NAME_LEN:-12}
+        if [[ ${#virtenv_name} -gt $virtenv_len ]]; then
+            local virt_left=$(( ($virtenv_len-2)/3 ))
+            local virt_right=$(( $virtenv_len-2-$virt_left ))
+            virtenv_name=$(echo $virtenv_name | sed -En 's/(.{'$virt_right'}).*(.{'$virt_left'})/\1..\2/p')
+        fi
+        printf '\001%s%s\002 \u24d4 %s \001%s\002' $revs $violet $virtenv_name $reset
     fi
 }
 # }}}1
 
-# Shell prompt customization. {{{1
+# Shell prompt customization. {{{
 PS1="\[\033]0;\$(_prompt_short_pwd)\007\]"
 PS1+="\n"
 PS1+="\$(_prompt_uid_color)\u\[$reset\]"
@@ -455,17 +471,10 @@ PS1+=" \$(_prompt_uid_color)\$ \[$reset\]"
 export PS1
 PS2="\[$yellow\]→ \[$reset\]"
 export PS2
-# Enable powerline plugin (see github.com/powerline/powerline)
-if [[ $POWERLINE_ENABLE -eq 1 && -e $POWERLINE_HOME/bash/powerline.sh ]] && powerline -h &> /dev/null; then
-    powerline-daemon -q
-    POWERLINE_BASH_CONTINUATION=1
-    POWERLINE_BASH_SELECT=1
-    source $POWERLINE_HOME/bash/powerline.sh
-fi
-# }}}1
+# }}}
 
-# fzf search settings. {{{1
-if [ -f $HOME/.fzf.bash ]; then
+# fzf search settings. {{{
+if [[ -s $HOME/.fzf.bash ]]; then
     . $HOME/.fzf.bash
     FZF_DEFAULT_OPTS='--no-height --no-reverse'
     FZF_CTRL_T_OPTS='--select-1 --exit-0 --color=bw'
@@ -476,20 +485,25 @@ if [ -f $HOME/.fzf.bash ]; then
     export FZF_CTRL_T_OPTS
     export FZF_CTRL_R_OPTS
 fi
-# }}}1
+# }}}
 
-# python virtualenv settings. {{{1
-if command -v virtualenvwrapper_lazy.sh &> /dev/null; then
-    export VIRTUALENVWRAPPER_PYTHON=$(command -v python3 2> /dev/null)
-    export VIRTUALENVWRAPPER_HOOK_DIR=$HOME/.config/virtualenvwrapper
-    export WORKON_HOME=$HOME/.virtualenvs
-    source "$(command -v virtualenvwrapper_lazy.sh 2> /dev/null)"
+# python virtualenv settings. {{{
+if [[ -s "$WORKON_HOME/bin/virtualenvwrapper-init.sh" ]]; then
+    # Move if-body to virtualenvwrapper-init.sh
+    wrapper_source="$(command -v virtualenvwrapper_lazy.sh 2> /dev/null)"
+    python_bin="$(command -v python3 2>/dev/null || command -v python 2>/dev/null)"
+    if [[ "$wrapper_source" && "$python_bin" ]]; then
+        export VIRTUALENVWRAPPER_PYTHON="$python_bin"
+        export VIRTUALENVWRAPPER_HOOK_DIR=$WORKON_HOME/.config/virtualenvwrapper
+        export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages'
+        . "$wrapper_source"
+    fi
 fi
-# }}}1
+# }}}
 
-# java sdkman settings. {{{1
-export SDKMAN_DIR="$HOME/Soft/sdkman"
-[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
-# }}}1
+# java sdkman settings. {{{
+[[ -r "$SDKMAN_DIR/bin/sdkman-init.sh" && -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] \
+    && . "$SDKMAN_DIR/bin/sdkman-init.sh"
+# }}}
 
 # vi: ft=sh fdm=marker ts=4 sw=4 et

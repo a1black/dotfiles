@@ -499,6 +499,10 @@ if (&t_Co > 2 || has('gui_running')) && has('syntax')
     augroup END
 endif
 " }}}1
+" Section: File type settings " {{{
+"--------------------
+au FileType yaml setlocal ts=2 sw=2
+" }}}
 
 if filereadable(expand('~/.vim/vimrc.local'))
     source ~/.vim/vimrc.local
