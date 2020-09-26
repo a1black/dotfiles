@@ -42,18 +42,12 @@ esac
 
 # Prompt autocomplition. {{{
 # enable bash completion in interactive shells
-export BASH_COMPLETION_USER_FILE="$HOME/.local/share/bash-completion/bash_completion"
 if ! shopt -oq posix ; then
     [[ -f /etc/bash_completion ]] && . /etc/bash_completion
 fi
 # }}}
 
 # Software settings. {{{
-# Enable periodic `git fetch` in current directory.
-export PS1_GIT_FETCH_ENABLE=0
-export PS1_GIT_FETCH_TIMER=600  # Number of seconds before next fetch.
-# Battery energy below this PS1 will have remain charge indicator.
-export PS1_LOW_BATTERY_ENERGY=60
 # Max length of virtual enviroment in PS1.
 export PS1_ENV_NAME_LEN=14
 # make less more friendly for non-text input files, see lesspipe(1).
@@ -71,12 +65,6 @@ mkcd() {
    case "$1" in /*) :;; *) set -- "./$1";; esac
    mkdir -p "$1" && cd "$1"
 }
-# System shutdown.
-medown() {
-    local subcmd=''
-    [[ "$1" != 'now' ]] && { sudo apt-get update -qq; sudo apt-get -qq upgrade; }
-    shutdown -h now
-}
 # Travel up the tree.
 up() {
     local path=".."
@@ -84,37 +72,6 @@ up() {
         path=$path/..
     done
     cd $path
-}
-# Simple wrap for upower util for providing short battery remain charge. {{{2
-wpower() {
-    local battery_id battery_info
-    battery_id=$(upower -e 2> /dev/null | grep -m 1 battery)
-    [[ -z "$battery_id" ]] && return 1
-    battery_info=$(upower -i $battery_id 2> /dev/null | \
-        sed -n -E '/state:/p;/percentage:/p;/(remain|time to [a-z]+):/p')
-    [[ -z "$battery_info" ]] && return 1
-    # Charging/discharging state.
-    local plugged=$(cat <<< $battery_info | awk '/state:/ {print $2}')
-    # Remain energy in percents.
-    local energy_left=$(cat <<< $battery_info | awk '/percentage:/ {print 0+$2}')
-    if [[ "$energy_left" == 0 ]]; then
-        return 1
-    elif [[ "${plugged,,}" == 'charging' ]]; then
-        # Prints out charging information.
-        printf "\u26a1%d%%" $energy_left
-    else
-        # Calculate remaining time before full discharge.
-        local time_to=$(cat <<< $battery_info | grep -E '(remain|time to [a-z]+)' | cut -d: -f2)
-        local time_left=$(echo "$time_to" | awk '{print 0+$1}')
-        # Translate hours to minutes.
-        if echo "$time_to" | grep -q 'hours'; then
-            time_left=$(awk -v left=$time_left 'BEGIN{printf "%.0f", left*60}')
-        else
-            time_left=$(printf "%.0f" $time_left)
-        fi
-        # Prints out remaining energy.
-        printf "%d%% %d:%02d" $energy_left $(($time_left / 60)) $(($time_left % 60))
-    fi
 }
 # Function to generating passwords. {{{2
 genpass() {
@@ -127,39 +84,9 @@ genpass() {
     fi
     tr -dc '[:alnum:]' < /dev/urandom | fold -w $len | head -n $choices
 }
-# Function to toggling touchpad state. {{{2
-togtouch() {
-    if command -v xinput &> /dev/null; then
-        local id state
-        id=$(xinput list --short 2> /dev/null | sed -n '/touchpad/Is/.*id=\([0-9]\+\).*/\1/p')
-        [[ -z "$id" ]] && return 1
-        state=$(xinput list-props "$id" | awk -F: '/Device Enabled/ {print 0+$2}' 2> /dev/null)
-        if [[ "$state" -eq 1 ]]; then
-            xinput disable "$id" &> /dev/null
-            echo "Touchpad is disabled"
-        else
-            xinput enable "$id" &> /dev/null
-            # Try to enable touchpad via synaptics (Xorg input driver).
-            # It fixes unresponsive pointer problem.
-            command -v synclient &> /dev/null && synclient TouchpadOff=0
-            echo "Touchpad is enabled"
-        fi
-    fi
-}
-# Function to toggling wifi state. {{{2
-togwifi() {
-    if command -v nmcli &> /dev/null; then
-        local action=$(nmcli -c no -m multiline r wifi | grep -c enabled | sed -e 's/1/off/; s/0/on/')
-        nmcli radio wifi $action &> /dev/null
-        echo "Wi-Fi is $action"
-    fi
-}
 # }}}1
 
 # Alias definitions. {{{
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 # Enable colored output.
 if [[ -x /usr/bin/dircolors ]]; then
     alias ls='ls --color=auto'
@@ -170,9 +97,6 @@ alias ll='ls -AlF --human-readable --escape'
 alias lw='ls -AlF --human-readable --escape --group-directories-first'
 alias lc='ls -CF --escape --group-directories-first'
 alias l1='ls -1F --escape --group-directories-first'
-# Php
-alias phpcsfix='php-cs-fix fix --verbose --show-progress=dots'
-alias phptags='ctags --languages=Php --map-Php=+.phpt -h ".php" --fields=+Saiml -R --totals=yes --exclude=".git"'
 # X clipboard
 if command -v xsel &> /dev/null; then
     alias pbcopy='xsel -i -b'
@@ -183,12 +107,6 @@ elif command -v xclip &> /dev/null; then
 fi
 # Show process total memory usage.
 alias memtotal="smem -t -k -c pss -P"
-# Kill Chrome processes.
-alias killchrome="ps -C chrome | grep chrome | awk '{print \$1}' | xargs -r kill -9"
-# Kill VLC processes.
-alias killvlc="ps -C vlc | grep vlc | awk '{print \$1}' | xargs -r kill -9"
-# Disable display
-alias doff="xset -display :0.0 dpms force off"
 # }}}
 
 # Solarized theme prompt colors. {{{
@@ -243,90 +161,6 @@ export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quo
 
 ## Primary and secondary prompt string customization.
 # Statusline customization functions. {{{1
-# Display sortend pwd. {{{2
-function _prompt_short_pwd() {
-    begin=""
-    homebegin=""
-    shortbegin=""
-    current=""
-    end="${2:-$(pwd)}/" # The unmodified rest of the path.
-    end="${end#/}" # Strip the first /
-    shortenedpath="$end"
-    shopt -q nullglob && NGV="-s" || NGV="-u"
-    shopt -s nullglob
-    while [[ -n "$end" ]]; do
-        current="${end%%/*}" # Everything before the first /
-        end="${end#*/}" # Everything after the first /
-        shortcur="$current"
-        for ((i=${#current}-2; i>=0; i--)); do
-            [[ ${#current} -le 20 && -z "$end" ]] && break
-            subcurrent="${current:0:i}"
-            # Array of all files that start with $subcurrent.
-            matching=("$begin/$subcurrent"*)
-            # Stop shortening if more than one file matches.
-            (( ${#matching[*]} != 1 )) && break
-            # Add character filler at the end of this string.
-            [[ -z "$end" ]] && shortcur="$subcurrent..."
-            # Add character filler at the end of this string.
-            [[ -n "$end" ]] && shortcur="$subcurrent+"
-        done
-        begin="$begin/$current"
-        homebegin="$homebegin/$current"
-        # Convert HOME to ~.
-        [[ "$homebegin" =~ ^"$HOME"(/|$) ]] && homebegin="~${homebegin#$HOME}"
-        shortbegin="$shortbegin/$shortcur"
-        # Use ~ for home.
-        [[ "$homebegin" == "~" ]] && shortbegin="~"
-        shortenedpath="$shortbegin/$end"
-    done
-    shortenedpath="${shortenedpath%/}" # Strip trailing /
-    shortenedpath="${shortenedpath#/}" # Strip leading /
-    # Make sure it starts with /
-    [[ ! "$shortenedpath" =~ ^"~" ]] && printf "/$shortenedpath"
-    # Don't use / for home directory.
-    [[ "$shortenedpath" =~ ^"~" ]] && printf "$shortenedpath"
-    # Reset nullglob in case this is being used as a function.
-    shopt "$NGV" nullglob
-} #}}}2
-
-# Display battery indicator on low remain energy. {{{2
-# Args:
-#   -bg     colorize output using background
-function _prompt_low_energy() {
-    local info=$(wpower)
-    [[ -z "$info" ]] && return 1
-    local energy_left=$(cat <<< "$info" | grep -oP '\d+(?=%)' | awk '{print 0+$1}')
-    local energy_low=$(awk -v low="$PS1_LOW_BATTERY_ENERGY" 'BEGIN{print 0+low}')
-    ((energy_low > 0 && energy_left > 0 && energy_left > energy_low)) && return 0
-    # Colorize output.
-    local clr bg=0
-    [[ "$1" == '-bg' ]] && bg=1
-    if ((energy_left <= 20)); then
-        ((bg == 1)) && clr=$'\e[48;5;124m\e[38;5;15m' || clr=$'\e[38;5;124m'
-    elif ((energy_left <= 50)); then
-        ((bg == 1)) && clr=$'\e[48;5;202m\e[38;5;0m' || clr=$'\e[38;5;202m'
-    elif ((energy_left <= 80)); then
-        ((bg == 1)) && clr=$'\e[48;5;226m\e[38;5;0m' || clr=$'\e[38;5;226m'
-    else
-        ((bg == 1)) && clr=$'\e[48;5;34m\e[38;5;15m' || clr=$'\e[38;5;34m'
-    fi
-    printf "\001%s\002 %s \001%s\002" $clr "$info" $reset
-} # }}}2
-
-# Do background update of git index every N minutes. {{{2
-function _git_status_fetch() {
-    [[ "$PS1_GIT_FETCH_ENABLE" != 1 ]] && return 0
-    local state_cache="$UID-$$"
-    [[ ! -e "/dev/shm/$state_cache" ]] && date +%s > /dev/shm/$state_cache
-    local old_mark=$(cat /dev/shm/$state_cache)
-    local new_mark=$(date +%s)
-    ((new_mark -= $old_mark))
-    if [[ $new_mark -ge $PS1_GIT_FETCH_TIMER ]]; then
-        date +%s > /dev/shm/$state_cache
-        git fetch -q &> /dev/null &
-    fi
-} # }}}2
-
 # Return simple git status string. {{{2
 function _prompt_git_status_simple() {
     # Check if current directory is git working tree.
@@ -370,8 +204,6 @@ function _prompt_git_status_detailed() {
     ! git rev-parse --is-inside-work-tree &> /dev/null && return
     # Check if the current directory is ".git".
     [[ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ]] && return
-    # Do `git fetch`.
-    _git_status_fetch
     # Collect data.
     local seg=$(git status --branch --porcelain=v1 2> /dev/null)
     local seg_branch=$(echo -e "$seg" | head -n 1)
@@ -456,15 +288,12 @@ function _prompt_virtualenv() {
 # }}}1
 
 # Shell prompt customization. {{{
-PS1="\[\033]0;\$(_prompt_short_pwd)\007\]"
-PS1+="\n"
-PS1+="\$(_prompt_uid_color)\u\[$reset\]"
+PS1="\$(_prompt_uid_color)\u\[$reset\]"
 [ -n "$SSH_TTY" ] && PS1+="\[$blue\] at \[$bold\]\[$purple\]\h\[$reset\]"
 PS1+="\[$blue\] in "
 PS1+="\[$green\]\w"
 PS1+="\n"
-PS1+="\[$revs\]\[$white\]\[$bold\]\A \[$reset\]"
-PS1+="\$(_prompt_low_energy -bg)"
+PS1+="\[$white\]\[$bold\]\A \[$reset\]"
 PS1+="\$(_prompt_virtualenv)"
 PS1+="\$(_prompt_git_status_detailed)"
 PS1+=" \$(_prompt_uid_color)\$ \[$reset\]"
@@ -474,8 +303,10 @@ export PS2
 # }}}
 
 # fzf search settings. {{{
-if [[ -s $HOME/.fzf.bash ]]; then
-    . $HOME/.fzf.bash
+if command -v fzf &> /dev/null ; then
+    . /usr/share/doc/fzf/examples/key-bindings.bash
+    . /usr/share/doc/fzf/examples/completion.bash
+
     FZF_DEFAULT_OPTS='--no-height --no-reverse'
     FZF_CTRL_T_OPTS='--select-1 --exit-0 --color=bw'
     FZF_CTRL_T_OPTS+=' --preview "(highlight -O ansi -l {} 2> /dev/null || cat {} || ls --color=always -1 {}) 2> /dev/null | head -100"'
@@ -484,20 +315,6 @@ if [[ -s $HOME/.fzf.bash ]]; then
     export FZF_DEFAULT_OPTS
     export FZF_CTRL_T_OPTS
     export FZF_CTRL_R_OPTS
-fi
-# }}}
-
-# python virtualenv settings. {{{
-if [[ -s "$WORKON_HOME/bin/virtualenvwrapper-init.sh" ]]; then
-    # Move if-body to virtualenvwrapper-init.sh
-    wrapper_source="$(command -v virtualenvwrapper_lazy.sh 2> /dev/null)"
-    python_bin="$(command -v python3 2>/dev/null || command -v python 2>/dev/null)"
-    if [[ "$wrapper_source" && "$python_bin" ]]; then
-        export VIRTUALENVWRAPPER_PYTHON="$python_bin"
-        export VIRTUALENVWRAPPER_HOOK_DIR=$WORKON_HOME/.config/virtualenvwrapper
-        export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages'
-        . "$wrapper_source"
-    fi
 fi
 # }}}
 
