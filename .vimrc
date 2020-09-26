@@ -128,41 +128,6 @@ let g:ctrlp_open_multiple_files = 'i'
 "let g:ctrlp_types = ['fil', 'mru']
 let g:ctrlp_mruf_include = '\.py$\|\.php$|\.js$|\.json$|\.sh$|\.conf$|\.dist'
 " }}}3
-" Syntastic Settings {{{3
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-let g:syntastic_aggregate_errors = 1
-let g:syntastic_php_checkers = ['phpcs', 'phpstan', 'php']
-let g:syntastic_php_phpcs_args = '--no-color --no-cache -q -w'
-" }}}3
-" ALE Settings {{{3
-let g:ale_lint_on_save = 1
-let g:ale_lint_on_text_changed = 'never'
-let g:ale_open_list = 0
-let g:ale_sign_column_always = 1
-let g:ale_set_highlights = 0
-let g:ale_max_signs = 30
-let g:ale_maximum_file_size = 20480
-" Error message format.
-let g:ale_echo_cursor = 0
-let g:ale_echo_msg_error_str = 'E'
-let g:ale_echo_msg_info_str = 'I'
-let g:ale_echo_msg_warning_str = 'W'
-" }}}3
-" PHPComplete {{{3
-"let g:phpcomplete_add_class_extensions = ['pthreads']
-"let g:phpcomplete_add_constant_extensions = ['pthreads']
-"let g:phpcomplete_remove_function_extensions = ['memcache', 'mysql', 'sqlite']
-"let g:phpcomplete_remove_class_extensions = ['memcache']
-"let g:phpcomplete_remove_constant_extensions = ['memcache', 'mysql', 'sqlite']
-" }}}3
-" NERDTree Settings {{{3
-let g:NERDTreeNaturalSort = 1
-let g:NERDTreeMapOpenSplit = 's'
-let g:NERDTreeMapOpenVSplit = 'v'
-" }}}3
 " Airline Settings {{{3
 let g:airline_section_z = '%#__accent_bold#%3l/%L%#__restore__# :%3v'
 let g:airline#extensions#tabline#enabled = 1
@@ -176,39 +141,9 @@ let g:airline#extensions#ale#enabled = 1
 let g:airline#extensions#syntastic#enabled = 0
 let g:airline#extensions#virtualenv#enabled = 1
 " }}}3
-" Startify {{{3
-let g:startify_bookmarks = []
-"let g:startify_list_order = ['files', 'bookmarks', 'sessions']
-let g:startify_files_number = 8
-let g:startify_enable_special = 0
-let g:startify_update_oldfiles = 1
-let g:startify_change_to_dir = 1
-let g:startify_change_to_vcs_root = 1
-let g:startify_session_dir = '~/.vim/session'
-let g:startify_session_autoload = 1
-let g:startify_session_persistence = 1
-let g:startify_session_sort = 1
-let g:startify_session_before_save = [
-    \ 'echo "Cleaning up before saving.."',
-    \ 'silent! NERDTreeClose'
-    \ ]
-" }}}3
-" Tagbar {{{3
-let g:tagbar_autofocus = 1
-let g:tagbar_autoclose = 1
-" }}}3
 " GitGutter {{{3
 let g:gitgutter_map_keys = 0
 "let g:gitgutter_grep = 'grep --color=never'
-" }}}3
-" IndentLine {{{3
-let g:indentLine_setColors = 0
-let g:indentLine_setConceal = 0
-let g:indentLine_faster = 1
-let g:indentLine_char = '┆'
-let g:indentLine_leadingSpaceEnabled = 0
-let g:indentLine_bufNameExclude = ['_.*', 'NERD_tree.*', '.*\/vim\d\+\/doc\/.*', '.*\/\.vim\/.*\/doc\/.*']
-let g:indentLine_enabled = 1
 " }}}3
 " NERDCommenter {{{3
 let g:NERDCompactSexyComs = 0
@@ -268,7 +203,10 @@ endfunction
 "--------------------
 if empty(glob('~/.vim/autoload/plug.vim'))
     silent !mkdir -p ~/.vim/autoload
+    silent !mkdir -p ~/.vim/backups
     silent !mkdir -p ~/.vim/plug.vim.bundle
+    silent !mkdir -p ~/.vim/swaps
+    silent !mkdir -p ~/.vim/undo
     silent !wget -qO - 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim' > ~/.vim/autoload/plug.vim
     augroup PlugVimInstall
         autocmd!
@@ -286,29 +224,25 @@ Plug 'a1black/vim-hybrid'
 " Visual goodies
 Plug 'vim-airline/vim-airline'         " Prity statusline
 Plug 'vim-airline/vim-airline-themes'  " Themes fot statusline
-Plug 'mhinz/vim-startify'              " Fancy start screen
-"Plug 'Yggdroot/indentLine'             " Highlight indent level
 
 " Syntax highlight
-"Plug 'plasticboy/vim-markdown'
-"Plug 'chr4/nginx.vim'
-"Plug 'exu/pgsql.vim'
+Plug 'elzr/vim-json'                   " JSON syntax highlight
+Plug 'chr4/nginx.vim'                  " Nginx.conf syntax highlight
+Plug 'plasticboy/vim-markdown'
+Plug 'StanAngeloff/php.vim'            " PHP syntax highlight
+Plug 'vim-python/python-syntax'        " Python syntax highlight
 
 " Miscellaneous plugins
-Plug 'a1black/vimisc'                   " My Vim commands
+Plug 'a1black/vimisc'                  " My Vim commands
 
 " Filesystem and search
-"Plug 'scrooloose/nerdtree'             " File system tree explorer
-"Plug 'Xuyuanp/nerdtree-git-plugin'     " Git status in NERDTree
 Plug 'tpope/vim-vinegar'               " Extension for built-in netrw plugin
 Plug 'ctrlpvim/ctrlp.vim'              " Fuzzy finder
 
 " Editing tools
 Plug 'scrooloose/nerdcommenter'        " Code commenting tool
 Plug 'godlygeek/tabular'               " Text aligning
-"Plug 'mtth/scratch.vim'                " Note taking
 Plug 'tpope/vim-surround'              " Surrounding text with quoates and tags (HTML)
-Plug 'kana/vim-textobj-line'           " Adds text object l (line), like `iw`
 Plug 'a1black/vim-quickfixtoggle'      " Quickfix window toggling
 
 " Vim functionality enhancement
@@ -318,36 +252,8 @@ Plug 'tpope/vim-repeat'                " Enhanced repeat in Vim
 
 " Version control systems
 Plug 'airblade/vim-gitgutter'          " Git status in sign column
-"Plug 'mhinz/vim-signify'               " VCS status in sign column
 Plug 'tpope/vim-fugitive'              " Git plugin fot Vim
 
-" Development
-Plug 'w0rp/ale'                        " Lint engine
-"Plug 'vim-syntastic/syntastic'         " Lint engine
-"Plug 'SirVer/ultisnips'                " Code snippet engine
-"Plug 'honza/vim-snippets'              " Code snippet library
-"Plug 'tpope/vim-dispatch'              " :Make command for Vim.
-"Plug 'janko-m/vim-test'                " Test invokation plugin
-Plug 'majutsushi/tagbar'               " On-the-fly in-memory tags creation
-Plug 'ludovicchabant/vim-gutentags'    " Automated tag generation
-
-" HTML/CSS/JS related packages
-"Plug 'elzr/vim-json'                   " JSON syntax highlight
-"Plug 'pangloss/vim-javascript'         " JavaScript syntax highlight
-"Plug 'othree/html5.vim'                " HTML5 syntax highlight
-"Plug 'mattn/emmet-vim'                 " HTML5 and XML programming enhantment
-
-" PHP related packages
-Plug 'StanAngeloff/php.vim'                             " Syntax highlight
-Plug 'vim-php/tagbar-phpctags.vim', {'for': 'php'}      " Enhanced Tagbar for PHP code
-"Plug 'shawncplus/phpcomplete.vim'                       " PHP code completion
-
-" PYTHON related packages
-Plug 'vim-python/python-syntax', {'for': 'python'}      " Syntax highlight
-"Plug 'tmhedberg/SimpylFold', {'for': 'python'}          " Enhanced python code folding
-Plug 'davidhalter/jedi-vim', {'for': 'python'}          " Code autocompletion for python
-Plug 'plytophogy/vim-virtualenv', {'for': 'python'}     " Python virtualenv support
-"Plug 'python-rope/ropevim', {'for': 'python'}           " Code refactoring
 call plug#end()
 " }}}1
 " Section: Mappings {{{1
@@ -387,7 +293,7 @@ endif
 
 map      <silent> <F1> <Esc>g<C-G>
 map!     <silent> <F1> <Esc>g<C-G>
-nnoremap <silent> <F1> :if exists(':Startify')<Bar>exe 'Startify'<Bar>else<Bar>echoerr 'Startify is not available.'<Bar>endif<CR>
+nnoremap <silent> <F1> :echo '<F1>'<CR>
 nnoremap <silent> <F2> :pclose<CR>
 nnoremap <silent> <F3> :Ltoggle<CR>
 nnoremap <silent> <F4> :Ltoggle!<CR>
@@ -412,10 +318,6 @@ nmap [W <C-W>k
 nmap ]W <C-W>j
 nmap [h <Plug>GitGutterPrevHunk
 nmap ]h <Plug>GitGutterNextHunk
-nmap [s <Plug>(ale_previous_wrap)
-nmap ]s <Plug>(ale_next_wrap)
-nmap [S <Plug>(ale_first)
-nmap ]S <Plug>(ale_last)
 
 " Inspired by tpope/unimpared
 nmap [oy :set syntax=ON<CR>
@@ -429,17 +331,6 @@ inoremap <silent> <C-G><C-T> <C-R>=repeat(complete(col('.'),map(["%Y-%m-%d %H:%M
 "--------------------
 if has('autocmd')
     filetype plugin indent on
-    augroup Misc " {{{2
-        autocmd!
-        autocmd FocusLost * silent! wall
-        autocmd! CursorHold     " @see help
-        " Open NERDTree when vim starts without file provided
-"        autocmd VimEnter * if argc() == 0 && !exists('s:std_in') | NERDTree | endif
-        " Open NERDTree when vim opens directory
-"        autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists('s:std_in') | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
-        " Close vim if only NERDTree window is opened
-        autocmd BufEnter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree())| q | endif
-    augroup END " }}}2
     augroup FileTypeCheck " {{{2
         autocmd!
         autocmd BufNewFile,BufRead *.todo,*.txt,README,INSTALL,TODO if &ft == '' | set ft=text | endif
@@ -451,7 +342,7 @@ if has('autocmd')
         autocmd FileType help nnoremap <silent><buffer> q :q<CR>
         autocmd FileType git,gitcommit setlocal foldmethod=syntax foldlevel=1
         autocmd FileType gitcommit setlocal spell
-        autocmd FileType scss,sass setlocal tabstop=2 shiftwidth=2
+        autocmd FileType scss,sass,yaml setlocal tabstop=2 shiftwidth=2
         autocmd FileType html,scss,sass,css,javascript let g:gutentags_enabled=0
         autocmd FileType * if exists("+omnifunc") && &omnifunc == "" | setlocal omnifunc=syntaxcomplete#Complete | endif
         autocmd FileType * if exists("+completefunc") && &completefunc == "" | setlocal completefunc=syntaxcomplete#Complete | endif
@@ -488,7 +379,7 @@ if (&t_Co > 2 || has('gui_running')) && has('syntax')
     if has('gui_running')
         colorscheme gruvbox
     else
-        silent! colorscheme solarized
+        silent! colorscheme hybrid
     endif
 
     augroup VisualOptions
@@ -499,10 +390,6 @@ if (&t_Co > 2 || has('gui_running')) && has('syntax')
     augroup END
 endif
 " }}}1
-" Section: File type settings " {{{
-"--------------------
-au FileType yaml setlocal ts=2 sw=2
-" }}}
 
 if filereadable(expand('~/.vim/vimrc.local'))
     source ~/.vim/vimrc.local

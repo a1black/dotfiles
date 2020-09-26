@@ -49,6 +49,8 @@ fi
 # }}}
 
 # Software settings. {{{
+# Enable detailed git information in PS1.
+export PS1_GIT_DETAILED=1
 # Enable periodic `git fetch` in current directory.
 export PS1_GIT_FETCH_ENABLE=0
 export PS1_GIT_FETCH_TIMER=600  # Number of seconds before next fetch.
@@ -170,9 +172,6 @@ alias ll='ls -AlF --human-readable --escape'
 alias lw='ls -AlF --human-readable --escape --group-directories-first'
 alias lc='ls -CF --escape --group-directories-first'
 alias l1='ls -1F --escape --group-directories-first'
-# Php
-alias phpcsfix='php-cs-fix fix --verbose --show-progress=dots'
-alias phptags='ctags --languages=Php --map-Php=+.phpt -h ".php" --fields=+Saiml -R --totals=yes --exclude=".git"'
 # X clipboard
 if command -v xsel &> /dev/null; then
     alias pbcopy='xsel -i -b'
@@ -327,6 +326,15 @@ function _git_status_fetch() {
     fi
 } # }}}2
 
+# Return git status string.
+function _prompt_git_status() {
+    if [[ -v 'PS1_GIT_DETAILED' && $PS1_GIT_DETAILED == 1 ]]; then
+        _prompt_git_status_detailed
+    else
+        _prompt_git_status_simple
+    fi
+}
+
 # Return simple git status string. {{{2
 function _prompt_git_status_simple() {
     # Check if current directory is git working tree.
@@ -466,7 +474,7 @@ PS1+="\n"
 PS1+="\[$revs\]\[$white\]\[$bold\]\A \[$reset\]"
 PS1+="\$(_prompt_low_energy -bg)"
 PS1+="\$(_prompt_virtualenv)"
-PS1+="\$(_prompt_git_status_detailed)"
+PS1+="\$(_prompt_git_status)"
 PS1+=" \$(_prompt_uid_color)\$ \[$reset\]"
 export PS1
 PS2="\[$yellow\]→ \[$reset\]"
