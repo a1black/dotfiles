@@ -73,12 +73,6 @@ mkcd() {
    case "$1" in /*) :;; *) set -- "./$1";; esac
    mkdir -p "$1" && cd "$1"
 }
-# System shutdown.
-medown() {
-    local subcmd=''
-    [[ "$1" != 'now' ]] && { sudo apt-get update -qq; sudo apt-get -qq upgrade; }
-    shutdown -h now
-}
 # Travel up the tree.
 up() {
     local path=".."
