@@ -333,16 +333,16 @@ if has('autocmd')
     filetype plugin indent on
     augroup FileTypeCheck " {{{2
         autocmd!
-        autocmd BufNewFile,BufRead *.todo,*.txt,README,INSTALL,TODO if &ft == '' | set ft=text | endif
-        autocmd BufNewFile,BufRead *.phpt set ft=php
-        autocmd BufNewFile,BufRead *.vue set ft=javascript
+        autocmd BufNewFile,BufRead *.todo,*.txt,README,INSTALL,TODO if &ft == '' | setlocal ft=text | endif
+        autocmd BufNewFile,BufRead *.phpt setlocal ft=php
+        autocmd BufNewFile,BufRead *.vue,*.jsx setlocal ft=javascript
     augroup END " }}}2
     augroup FileTypeOptions " {{{2
         autocmd!
         autocmd FileType help nnoremap <silent><buffer> q :q<CR>
         autocmd FileType git,gitcommit setlocal foldmethod=syntax foldlevel=1
         autocmd FileType gitcommit setlocal spell
-        autocmd FileType scss,sass,yaml setlocal tabstop=2 shiftwidth=2
+        autocmd FileType javascript,scss,sass,yaml,json,html setlocal tabstop=2 shiftwidth=2
         autocmd FileType html,scss,sass,css,javascript let g:gutentags_enabled=0
         autocmd FileType * if exists("+omnifunc") && &omnifunc == "" | setlocal omnifunc=syntaxcomplete#Complete | endif
         autocmd FileType * if exists("+completefunc") && &completefunc == "" | setlocal completefunc=syntaxcomplete#Complete | endif

@@ -42,7 +42,6 @@ esac
 
 # Prompt autocomplition. {{{
 # enable bash completion in interactive shells
-export BASH_COMPLETION_USER_FILE="$HOME/.local/share/bash-completion/bash_completion"
 if ! shopt -oq posix ; then
     [[ -f /etc/bash_completion ]] && . /etc/bash_completion
 fi
@@ -67,21 +66,21 @@ export LESS='-iXFJMRs'
 export LESSHISTFILE="/dev/null"
 # }}}
 
-# User defined commands. {{{1
-# Create and switch directory.
+# User defined commands.
+# Create and switch directory. {{{
 mkcd() {
    case "$1" in /*) :;; *) set -- "./$1";; esac
    mkdir -p "$1" && cd "$1"
-}
-# Travel up the tree.
+} #}}}
+# Travel up the tree. {{{
 up() {
     local path=".."
     for ((i=2; i<=${1:-1}; i++)); do
         path=$path/..
     done
     cd $path
-}
-# Simple wrap for upower util for providing short battery remain charge. {{{2
+} #}}}
+# Simple wrap for upower util for providing short battery remain charge. {{{
 wpower() {
     local battery_id battery_info
     battery_id=$(upower -e 2> /dev/null | grep -m 1 battery)
@@ -111,8 +110,8 @@ wpower() {
         # Prints out remaining energy.
         printf "%d%% %d:%02d" $energy_left $(($time_left / 60)) $(($time_left % 60))
     fi
-}
-# Function to generating passwords. {{{2
+} #}}}
+# Function to generating passwords. {{{
 genpass() {
     local len=8 choices=1
     if [[ "$1" =~ ^[0-9]+$ && "$1" -gt 7 ]]; then
@@ -122,8 +121,8 @@ genpass() {
         choices="$2"
     fi
     tr -dc '[:alnum:]' < /dev/urandom | fold -w $len | head -n $choices
-}
-# Function to toggling touchpad state. {{{2
+} #}}}
+# Function to toggling touchpad state. {{{
 togtouch() {
     if command -v xinput &> /dev/null; then
         local id state
@@ -141,16 +140,38 @@ togtouch() {
             echo "Touchpad is enabled"
         fi
     fi
-}
-# Function to toggling wifi state. {{{2
+} #}}}
+# Function to toggling wifi state. {{{
 togwifi() {
     if command -v nmcli &> /dev/null; then
         local action=$(nmcli -c no -m multiline r wifi | grep -c enabled | sed -e 's/1/off/; s/0/on/')
         nmcli radio wifi $action &> /dev/null
         echo "Wi-Fi is $action"
     fi
-}
-# }}}1
+} #}}}
+# Function to display processes that utilize inotify watchers. {{{
+# Args:
+#   $1      Filter process list by the number of watchers (default: 100)
+iwatchers() {
+    local min=${1:-100} procs=0 total=0 cnt=0 pid=0 cmd
+    printf "%6s %8s  %s\n" "COUNT" "PID" "COMMAND"
+    while read watcher; do
+        cnt=${watcher##*:}
+        pid=${watcher%%:*}
+        ((total += cnt))
+        ((procs++))
+        if ((cnt >= min)); then
+            cmd=$(ps -o command= -p $pid)
+            ((${#cmd} >= 79)) && cmd="${cmd:0:30}...${cmd: -46}"
+            printf "%6d %8d  %s\n" "$cnt" "$pid" "$cmd"
+        fi
+    done < <(find /proc/*/fd -ilname anon_inode:*inotify* -printf '%h:' \
+                -execdir grep -c '^inotify' ../fdinfo/{} \; 2> /dev/null | \
+                sed -E 's/[^0-9:]//g ; /:0$/d' | sort -nr -t: -k2)
+    printf -- "----------------------------------------\n"
+    printf "%d  use  %d of %d" "$procs" "$total" "$(cat /proc/sys/fs/inotify/max_user_watches)"
+
+} #}}}
 
 # Alias definitions. {{{
 # Add an "alert" alias for long running commands.  Use like so:
@@ -235,9 +256,9 @@ export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quo
 # }}}
 
 ## Primary and secondary prompt string customization.
-# Statusline customization functions. {{{1
-# Display sortend pwd. {{{2
-function _prompt_short_pwd() {
+# Statusline customization functions.
+# Display sortend pwd. {{{
+_prompt_short_pwd() {
     begin=""
     homebegin=""
     shortbegin=""
@@ -280,12 +301,12 @@ function _prompt_short_pwd() {
     [[ "$shortenedpath" =~ ^"~" ]] && printf "$shortenedpath"
     # Reset nullglob in case this is being used as a function.
     shopt "$NGV" nullglob
-} #}}}2
+} #}}}
 
-# Display battery indicator on low remain energy. {{{2
+# Display battery indicator on low remain energy. {{{
 # Args:
 #   -bg     colorize output using background
-function _prompt_low_energy() {
+_prompt_low_energy() {
     local info=$(wpower)
     [[ -z "$info" ]] && return 1
     local energy_left=$(cat <<< "$info" | grep -oP '\d+(?=%)' | awk '{print 0+$1}')
@@ -304,10 +325,10 @@ function _prompt_low_energy() {
         ((bg == 1)) && clr=$'\e[48;5;34m\e[38;5;15m' || clr=$'\e[38;5;34m'
     fi
     printf "\001%s\002 %s \001%s\002" $clr "$info" $reset
-} # }}}2
+} #}}}
 
-# Do background update of git index every N minutes. {{{2
-function _git_status_fetch() {
+# Do background update of git index every N minutes. {{{
+_git_status_fetch() {
     [[ "$PS1_GIT_FETCH_ENABLE" != 1 ]] && return 0
     local state_cache="$UID-$$"
     [[ ! -e "/dev/shm/$state_cache" ]] && date +%s > /dev/shm/$state_cache
@@ -318,19 +339,19 @@ function _git_status_fetch() {
         date +%s > /dev/shm/$state_cache
         git fetch -q &> /dev/null &
     fi
-} # }}}2
+} #}}}
 
-# Return git status string.
-function _prompt_git_status() {
+# Return git status string. {{{
+_prompt_git_status() {
     if [[ -v 'PS1_GIT_DETAILED' && $PS1_GIT_DETAILED == 1 ]]; then
         _prompt_git_status_detailed
     else
         _prompt_git_status_simple
     fi
-}
+} #}}}
 
-# Return simple git status string. {{{2
-function _prompt_git_status_simple() {
+# Return simple git status string. {{{
+_prompt_git_status_simple() {
     # Check if current directory is git working tree.
     ! git rev-parse --is-inside-work-tree &> /dev/null && return
     # Check if the current directory is ".git".
@@ -364,10 +385,10 @@ function _prompt_git_status_simple() {
     fi
     [[ -n "$marks" ]] && marks=" [$marks] "
     printf '\001%s%s\002 %s \001%s\002%s\001%s\002' $revs $bc "$branch" $blue "$marks" $reset
-} #}}}2
+} #}}}
 
-# Return detailed git status string. {{{2
-function _prompt_git_status_detailed() {
+# Return detailed git status string. {{{
+_prompt_git_status_detailed() {
     # Check if current directory is git working tree.
     ! git rev-parse --is-inside-work-tree &> /dev/null && return
     # Check if the current directory is ".git".
@@ -429,7 +450,7 @@ function _prompt_git_status_detailed() {
         [[ $stashed != 0 ]] && printf ' \001%s\002\u2691 %s' $blue $stashed
         printf ' \001%s\002' $reset
     fi
-} #}}}2
+} #}}}
 
 # Return color accourding to privilages.
 function _prompt_uid_color() {
@@ -476,17 +497,18 @@ export PS2
 # }}}
 
 # fzf search settings. {{{
-if [[ -s $HOME/.fzf.bash ]]; then
-    . $HOME/.fzf.bash
-    FZF_DEFAULT_OPTS='--no-height --no-reverse'
-    FZF_CTRL_T_OPTS='--select-1 --exit-0 --color=bw'
-    FZF_CTRL_T_OPTS+=' --preview "(highlight -O ansi -l {} 2> /dev/null || cat {} || ls --color=always -1 {}) 2> /dev/null | head -100"'
-    FZF_CTRL_R_OPTS='--preview "echo {}" --preview-window down:3:hidden:wrap --bind "?:toggle-preview"'
+fzf_cmd=$(command -v fzf 2> /dev/null)
+if [[ -n $fzf_cmd ]]; then
+    fzf_home=$(realpath "$fzf_cmd" | xargs dirname | sed 's/\/bin//')
+    [[ -s $fzf_home/shell/key-bindings.bash ]] && . "$fzf_home/shell/key-bindings.bash"
 
-    export FZF_DEFAULT_OPTS
-    export FZF_CTRL_T_OPTS
-    export FZF_CTRL_R_OPTS
+    export FZF_DEFAULT_OPTS='--no-height --no-reverse'
+    export FZF_CTRL_T_OPTS='--select-1 --exit-0 --color=bw --preview "(highlight -O ansi -l {} 2> /dev/null || cat {} || ls --color=always -1 {}) 2> /dev/null | head -100"'
+    export FZF_CTRL_R_OPTS='--preview "echo {}" --preview-window down:3:hidden:wrap --bind "?:toggle-preview"'
+
+    unset fzf_home
 fi
+unset fzf_cmd
 # }}}
 
 # python virtualenv settings. {{{
@@ -494,7 +516,7 @@ if [[ -s "$WORKON_HOME/bin/virtualenvwrapper-init.sh" ]]; then
     # Move if-body to virtualenvwrapper-init.sh
     wrapper_source="$(command -v virtualenvwrapper_lazy.sh 2> /dev/null)"
     python_bin="$(command -v python3 2>/dev/null || command -v python 2>/dev/null)"
-    if [[ "$wrapper_source" && "$python_bin" ]]; then
+    if [[ -n $wrapper_source && -n $python_bin ]]; then
         export VIRTUALENVWRAPPER_PYTHON="$python_bin"
         export VIRTUALENVWRAPPER_HOOK_DIR=$WORKON_HOME/.config/virtualenvwrapper
         export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages'
@@ -503,9 +525,8 @@ if [[ -s "$WORKON_HOME/bin/virtualenvwrapper-init.sh" ]]; then
 fi
 # }}}
 
-# java sdkman settings. {{{
-[[ -r "$SDKMAN_DIR/bin/sdkman-init.sh" && -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] \
+# java sdkman settings.
+[[ -r "$SDKMAN_DIR/bin/sdkman-init.sh" && ! -v "SDKMAN_PLATFORM" ]] \
     && . "$SDKMAN_DIR/bin/sdkman-init.sh"
-# }}}
 
 # vi: ft=sh fdm=marker ts=4 sw=4 et
