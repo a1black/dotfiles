@@ -1,6 +1,5 @@
-" Section: Options {{{1
+" Section: Options {{{
 "--------------------
-
 set nocompatible                  " improved Vim experience
 set encoding=utf-8 nobomb         " do not use BOM
 scriptencoding utf-8              " utf-8 all the way
@@ -23,16 +22,6 @@ set splitright                    " Open new vertical split rigth to the current
 set timeoutlen=1200               " A little bit more time for macros
 set ttimeoutlen=50                " Make Esc work faster
 
-" Subsection: Indent {{{2
-"--------------------
-set autoindent                    " Automatically insert indent after new line
-set smartindent                   " Make autoindent even better
-set expandtab                     " Use spaces instead of tab
-set shiftround                    " Round intent to multiple of 'shiftwidth'
-set shiftwidth=4                  " Indent size in spaces for autoindent commands (>> CTRL-T)
-set tabstop=4                     " Tab size in spaces
-" }}}2
-
 set backspace=indent,eol,start    " Enable <BS> in insert mode
 set formatoptions-=t              " Disable auto-wrap text
 set formatoptions-=c              " Disable auto-wrap comments
@@ -40,7 +29,16 @@ set formatoptions-=o              " Do not insert comment leader on hitting 'o'
 set formatoptions+=j              " Delete comment character when joining commented lines
 set nrformats-=octal              " Do not treat '007' as octal number on <C-A> or <C-X>
 
-" Subsection: Autocomplete {{{2
+" Subsection: Indent
+"--------------------
+set autoindent                    " Automatically insert indent after new line
+set smartindent                   " Make autoindent even better
+set expandtab                     " Use spaces instead of tab
+set shiftround                    " Round intent to multiple of 'shiftwidth'
+set shiftwidth=4                  " Indent size in spaces for autoindent commands (>> CTRL-T)
+set tabstop=4                     " Tab size in spaces
+
+" Subsection: Autocomplete
 "--------------------
 set wildmenu                      " Enhanced command line auto-complition
 set wildmode=longest:full,full
@@ -50,8 +48,8 @@ set completeopt+=menu             " Show select menu for autocomplete.
 set completeopt+=menuone          " Show select menu even if autocomplete menu contains a single option
 set completeopt+=longest          " Only inset the longest common text of the match
 set completeopt+=noselect         " Do not autoselect autocomplete option from menu.
-" }}}2
-" Subsection: Visual {{{2
+
+" Subsection: Visual
 "--------------------
 if exists('+breakindent')         " same as +linebreak
     set wrap linebreak breakindent " Wrap long lines of text and auto-indent (only visualy)
@@ -80,8 +78,8 @@ if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 else
     set listchars=tab:>\ ,trail:·,eol:¬,nbsp:_,extends:>,precedes:<
 endif
-" }}}2
-" Subsection: GUI {{{2
+
+" Subsection: GUI
 "--------------------
 if has('gui_running')
     set mouse=nvi
@@ -94,8 +92,8 @@ if has('gui_running')
     set guioptions-=r
     set guioptions-=L
 endif
-" }}}2
-" Subsection: File paths {{{2
+
+" Subsection: File paths
 "--------------------
 set dictionary+=/usr/share/dict/words
 "set cpoptions+=d
@@ -109,14 +107,13 @@ endif
 if !empty($SUDO_USER) && $USER !=# $SUDO_USER
     set viminfo=
 endif
-" }}}2
-" Subsection: Plugin Settings {{{2
+
+" Subsection: Plugin Settings
 "--------------------
-" netrw Settings {{{3
+" netrw
 " netrw has a bug where sorting items marks buffer as modified therefore preventing it from closing.
 let g:netrw_liststyle = 1
-" }}}3
-" CtrlP Settings {{{3
+" CtrlP
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files . -co --exclude-standard', 'find %s -type f']
 let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlP'
@@ -127,8 +124,7 @@ let g:ctrlp_open_new_file = 'r'
 let g:ctrlp_open_multiple_files = 'i'
 "let g:ctrlp_types = ['fil', 'mru']
 let g:ctrlp_mruf_include = '\.py$\|\.php$|\.js$|\.json$|\.sh$|\.conf$|\.dist'
-" }}}3
-" Airline Settings {{{3
+" Airline
 let g:airline_section_z = '%#__accent_bold#%3l/%L%#__restore__# :%3v'
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
@@ -140,55 +136,23 @@ let g:airline#extensions#hunks#enabled = 1
 let g:airline#extensions#ale#enabled = 1
 let g:airline#extensions#syntastic#enabled = 0
 let g:airline#extensions#virtualenv#enabled = 1
-" }}}3
-" GitGutter {{{3
+" GitGutter
 let g:gitgutter_map_keys = 0
-"let g:gitgutter_grep = 'grep --color=never'
-" }}}3
-" NERDCommenter {{{3
+" NERDCommenter
 let g:NERDCompactSexyComs = 0
 let g:NERDDefaultAlign = 'left'
 let g:NERDTrimTrailingWhitespaces = 1
-" }}}3
-" Syntax Highlight Settings {{{3
+" Syntax Highlight
 let g:vim_markdown_no_default_key_mappings = 1
 let g:vim_markdown_conceal = 0
 let g:php_html_load = 0
 let g:php_sql_query = 0
-" }}}3
-" Gutentags {{{3
-let g:gutentags_file_list_command = { 'markers': { '.git': 'git ls-files . -co --exclude-standard'} }
-"let g:gutentags_ctags_executable_php = 'phpctags'
-" }}}3
-" }}}2
-" }}}1
-" Section: Commands {{{1
+" }}}
+
+" Section: Commands {{{
 "--------------------
 command! -count=0 RFC :edit http://www.ietf.org/rfc/rfc<count>.txt|setl ro noma
 command! -nargs=? -bang Scratch :silent e<bang> Sess-Notes|setl buftype=nofile bufhidden=hide noswapfile nobuflisted filetype=<args> modifiable
-
-let s:my_clr=['gruvbox', 'hybrid', 'jellybeans', 'solarized']
-for s:clr in s:my_clr
-    execute 'command! Clr'.s:clr.' :colorscheme '.s:clr
-endfor
-
-command! -bar -buffer Olink :call <SID>Open_url_in_cmd_brouser()
-function! s:Open_url_in_cmd_brouser()
-    let l:url_pattern='\(https\?\|mailto\):\/\/[^ >)}\]]\+'
-    let l:oldreg=getreg('/', 1)
-    execute 'normal! m`'
-    if search(l:url_pattern, 'cw', line('.')) == 0
-        execute 'normal! B'
-    endif
-    if search(l:url_pattern, 'cw', line('.'))
-        let l:href=matchstr(getline(line('.')), l:url_pattern, col('.')-1)
-        call system('elinks "'.l:href.'"')
-        echom 'Url was opened in Links'
-    endif
-    call setreg('/', l:oldreg)
-    execute 'normal ``'
-endfunction
-
 command! -bar -nargs=1 Retab :call <SID>Retab_buffer(<f-args>)
 function! s:Retab_buffer(ts)
     let l:ts=&tabstop
@@ -198,8 +162,9 @@ function! s:Retab_buffer(ts)
     execute 'setlocal tabstop='.l:ts.' softtabstop='.l:sts.' expandtab'
     silent retab!
 endfunction
-" }}}1
-" Section: Plugins {{{1
+" }}}
+
+" Section: Plugins {{{
 "--------------------
 if empty(glob('~/.vim/autoload/plug.vim'))
     silent !mkdir -p ~/.vim/autoload
@@ -216,7 +181,7 @@ if empty(glob('~/.vim/autoload/plug.vim'))
 endif
 call plug#begin('~/.vim/plug.vim.bundle')
 " Themes and color schemes
-Plug 'altercation/vim-colors-solarized'
+"Plug 'altercation/vim-colors-solarized'
 Plug 'nanotech/jellybeans.vim'
 Plug 'morhetz/gruvbox'
 Plug 'a1black/vim-hybrid'
@@ -232,9 +197,6 @@ Plug 'plasticboy/vim-markdown'
 Plug 'StanAngeloff/php.vim'            " PHP syntax highlight
 Plug 'vim-python/python-syntax'        " Python syntax highlight
 
-" Miscellaneous plugins
-Plug 'a1black/vimisc'                  " My Vim commands
-
 " Filesystem and search
 Plug 'tpope/vim-vinegar'               " Extension for built-in netrw plugin
 Plug 'ctrlpvim/ctrlp.vim'              " Fuzzy finder
@@ -243,7 +205,6 @@ Plug 'ctrlpvim/ctrlp.vim'              " Fuzzy finder
 Plug 'scrooloose/nerdcommenter'        " Code commenting tool
 Plug 'godlygeek/tabular'               " Text aligning
 Plug 'tpope/vim-surround'              " Surrounding text with quoates and tags (HTML)
-Plug 'a1black/vim-quickfixtoggle'      " Quickfix window toggling
 
 " Vim functionality enhancement
 Plug 'easymotion/vim-easymotion'       " Enhanced motion in Vim
@@ -255,15 +216,15 @@ Plug 'airblade/vim-gitgutter'          " Git status in sign column
 Plug 'tpope/vim-fugitive'              " Git plugin fot Vim
 
 call plug#end()
-" }}}1
-" Section: Mappings {{{1
+" }}}
+
+" Section: Mappings {{{
 "--------------------
 " Get off my lawn
 nnoremap <Left> :echoe "Use h"<CR>
 nnoremap <Right> :echoe "Use l"<CR>
 nnoremap <Up> :echoe "Use k"<CR>
 nnoremap <Down> :echoe "Use j"<CR>
-
 " Clear the highlighting search results
 nnoremap <silent> <C-L> :nohlsearch<C-R>=has('diff')?'<Bar>diffupdate':''<CR><CR>
 " Exit insert and return cursor to last position
@@ -290,14 +251,14 @@ nnoremap <silent> <leader>x :close<CR>
 if empty(maparg('-', 'n'))
     nnoremap <silent> - :Explore<CR>
 endif
-
+" F-key mapping
 map      <silent> <F1> <Esc>g<C-G>
 map!     <silent> <F1> <Esc>g<C-G>
 nnoremap <silent> <F1> :echo '<F1>'<CR>
-nnoremap <silent> <F2> :pclose<CR>
-nnoremap <silent> <F3> :Ltoggle<CR>
-nnoremap <silent> <F4> :Ltoggle!<CR>
-nnoremap <silent> <F5> :if exists(':TagbarToggle')<Bar>exe 'TagbarToggle'<Bar>else<Bar>echoerr 'Tagbar is not available.'<Bar>endif<CR>
+nnoremap <silent> <F2> :echo '<F2>'<CR>
+nnoremap <silent> <F3> :echo '<F3>'<CR>
+nnoremap <silent> <F4> :echo '<F4>'<CR>
+nnoremap <silent> <F5> :echo '<F5>'<CR>
 nnoremap <silent> <F6> :if ! empty(getwinvar(winnr(), 'fugitive_diff_restore', 0))<Bar>close<Bar>elseif exists(':Gdiff')<Bar>exe 'Gdiff'<Bar>else<Bar>echoerr 'Fugitive is not available.'<Bar>endif<CR>
 nnoremap <silent> <F7> :echo '<F7>'<CR>
 nnoremap <silent> <F8> :echo '<F8>'<CR>
@@ -305,39 +266,37 @@ nmap     <silent> <F9> :echo '<F9>'<CR>
 "Open app menu   <F10>
 "Fullscreen mod  <F11>
 set  pastetoggle=<F12>
-
 " GitGutter
-nmap <Leader>hs <Plug>GitGutterStageHunk
-nmap <Leader>hu <Plug>GitGutterUndoHunk
-nmap <Leader>hp <Plug>GitGutterPreviewHunk
+nmap <Leader>hs <Plug>(GitGutterStageHunk)
+nmap <Leader>hu <Plug>(GitGutterUndoHunk)
+nmap <Leader>hp <Plug>(GitGutterPreviewHunk)
 " Movement
 nnoremap <leader>wg :<C-U>silent execute v:count.' wincmd w'<CR>
 nmap [w <C-W>h
 nmap ]w <C-W>l
 nmap [W <C-W>k
 nmap ]W <C-W>j
-nmap [h <Plug>GitGutterPrevHunk
-nmap ]h <Plug>GitGutterNextHunk
-
+nmap [h <Plug>(GitGutterPrevHunk)
+nmap ]h <Plug>(GitGutterNextHunk)
 " Inspired by tpope/unimpared
 nmap [oy :set syntax=ON<CR>
 nmap ]oy :set syntax=OFF<CR>
 nmap =oy :set syntax=<C-R>=&syntax == "OFF" ? "ON" : "OFF"<CR><CR>
-
 " Insert time
 inoremap <silent> <C-G><C-T> <C-R>=repeat(complete(col('.'),map(["%Y-%m-%d %H:%M:%S","%a, %d %b %Y %H:%M:%S %z","%Y %b %d","%d-%b-%y","%a %b %d %T %Z %Y"],'strftime(v:val)')+[localtime()]),0)<CR>
-" }}}1
-" Section: Autocommands {{{1
+" }}}
+
+" Section: Autocommands {{{
 "--------------------
 if has('autocmd')
     filetype plugin indent on
-    augroup FileTypeCheck " {{{2
+    augroup FileTypeCheck
         autocmd!
         autocmd BufNewFile,BufRead *.todo,*.txt,README,INSTALL,TODO if &ft == '' | setlocal ft=text | endif
         autocmd BufNewFile,BufRead *.phpt setlocal ft=php
         autocmd BufNewFile,BufRead *.vue,*.jsx setlocal ft=javascript
-    augroup END " }}}2
-    augroup FileTypeOptions " {{{2
+    augroup END
+    augroup FileTypeOptions
         autocmd!
         autocmd FileType help nnoremap <silent><buffer> q :q<CR>
         autocmd FileType git,gitcommit setlocal foldmethod=syntax foldlevel=1
@@ -346,10 +305,11 @@ if has('autocmd')
         autocmd FileType html,scss,sass,css,javascript let g:gutentags_enabled=0
         autocmd FileType * if exists("+omnifunc") && &omnifunc == "" | setlocal omnifunc=syntaxcomplete#Complete | endif
         autocmd FileType * if exists("+completefunc") && &completefunc == "" | setlocal completefunc=syntaxcomplete#Complete | endif
-    augroup END " }}}2
+    augroup END
 endif
-" }}}1
-" Section: Themes and highlights " {{{1
+" }}}
+
+" Section: Themes and highlights " {{{
 "--------------------
 function! s:initfont()
     if has('unix')
@@ -389,12 +349,6 @@ if (&t_Co > 2 || has('gui_running')) && has('syntax')
         autocmd GuiEnter * call <SID>initfont()
     augroup END
 endif
-" }}}1
-
-if filereadable(expand('~/.vim/vimrc.local'))
-    source ~/.vim/vimrc.local
-elseif filereadable(expand('~/.vimrc.local'))
-    source ~/.vimrc.local
-endif
+" }}}
 
 " vim: fdm=marker ts=4 sw=4 et tw=0

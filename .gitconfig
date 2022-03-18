@@ -61,8 +61,6 @@
 [core]
     editor = vim
     # Use custom `.gitignore` and `.gitattributes`
-#    excludesfile = "$HOME/.gitconf/.gitignore_global"
-#    attributesfile = "$HOME/.gitconf/.gitattributes"
     # trailing-space: look for spaces at the end of a line and empty lines at the end of file
     # space-before-tab: looks for spaces before tabs at the beginning of a line
     whitespace = trailing-space,space-before-tabs,-indent-with-non-tab
@@ -88,7 +86,6 @@
     changed = green
     untracked = cyan
 [commit]
-#    template = "$HOME/.gitconf/git_commit.tpl"
 #    gpgsign = true
 [diff]
     algorithm = patience
@@ -124,7 +121,5 @@
 [user]
     name = a1black
     email = 37011601+a1black@users.noreply.github.com
-[include]
-    path = ~/.gitconfig.local
 
 # vi: fdm=indent ts=4 sw=4 et

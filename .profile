@@ -1,14 +1,14 @@
 ## Extend PATH enviroment variable.
-# Software enviroment variables.
+# Java software
 export ANDROID_SDK_ROOT="$HOME/vmdisk/android/sdk"
 export ANDROID_AVD_HOME="$HOME/vmdisk/android/avd"
-export SDKMAN_DIR="$HOME/Soft/sdkman"
+export SDKMAN_DIR="$HOME/.local/share/sdkman"
 # Virtualenv
-export PYENV_ROOT="$HOME/Soft/pyenv"
-export WORKON_HOME="$HOME/Soft/virtualenvs"
+export PYENV_ROOT="$HOME/.local/share/pyenv"
+export WORKON_HOME="$HOME/.local/share/virtualenvs"
 # Executables
 export NODE_HOME="$HOME/.local/share/node"
-export POETRY_HOME="$HOME/Soft/poetry"
+export POETRY_HOME="$HOME/.loval/share/poetry"
 
 # Include localy installed software
 [[ -d $HOME/bin && ! $PATH =~ $HOME/bin: ]] && PATH="$HOME/bin:$PATH"

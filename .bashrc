@@ -50,11 +50,6 @@ fi
 # Software settings. {{{
 # Enable detailed git information in PS1.
 export PS1_GIT_DETAILED=1
-# Enable periodic `git fetch` in current directory.
-export PS1_GIT_FETCH_ENABLE=0
-export PS1_GIT_FETCH_TIMER=600  # Number of seconds before next fetch.
-# Battery energy below this PS1 will have remain charge indicator.
-export PS1_LOW_BATTERY_ENERGY=60
 # Max length of virtual enviroment in PS1.
 export PS1_ENV_NAME_LEN=14
 # make less more friendly for non-text input files, see lesspipe(1).
@@ -79,37 +74,6 @@ up() {
         path=$path/..
     done
     cd $path
-} #}}}
-# Simple wrap for upower util for providing short battery remain charge. {{{
-wpower() {
-    local battery_id battery_info
-    battery_id=$(upower -e 2> /dev/null | grep -m 1 battery)
-    [[ -z "$battery_id" ]] && return 1
-    battery_info=$(upower -i $battery_id 2> /dev/null | \
-        sed -n -E '/state:/p;/percentage:/p;/(remain|time to [a-z]+):/p')
-    [[ -z "$battery_info" ]] && return 1
-    # Charging/discharging state.
-    local plugged=$(cat <<< $battery_info | awk '/state:/ {print $2}')
-    # Remain energy in percents.
-    local energy_left=$(cat <<< $battery_info | awk '/percentage:/ {print 0+$2}')
-    if [[ "$energy_left" == 0 ]]; then
-        return 1
-    elif [[ "${plugged,,}" == 'charging' ]]; then
-        # Prints out charging information.
-        printf "\u26a1%d%%" $energy_left
-    else
-        # Calculate remaining time before full discharge.
-        local time_to=$(cat <<< $battery_info | grep -E '(remain|time to [a-z]+)' | cut -d: -f2)
-        local time_left=$(echo "$time_to" | awk '{print 0+$1}')
-        # Translate hours to minutes.
-        if echo "$time_to" | grep -q 'hours'; then
-            time_left=$(awk -v left=$time_left 'BEGIN{printf "%.0f", left*60}')
-        else
-            time_left=$(printf "%.0f" $time_left)
-        fi
-        # Prints out remaining energy.
-        printf "%d%% %d:%02d" $energy_left $(($time_left / 60)) $(($time_left % 60))
-    fi
 } #}}}
 # Function to generating passwords. {{{
 genpass() {
@@ -303,44 +267,6 @@ _prompt_short_pwd() {
     shopt "$NGV" nullglob
 } #}}}
 
-# Display battery indicator on low remain energy. {{{
-# Args:
-#   -bg     colorize output using background
-_prompt_low_energy() {
-    local info=$(wpower)
-    [[ -z "$info" ]] && return 1
-    local energy_left=$(cat <<< "$info" | grep -oP '\d+(?=%)' | awk '{print 0+$1}')
-    local energy_low=$(awk -v low="$PS1_LOW_BATTERY_ENERGY" 'BEGIN{print 0+low}')
-    ((energy_low > 0 && energy_left > 0 && energy_left > energy_low)) && return 0
-    # Colorize output.
-    local clr bg=0
-    [[ "$1" == '-bg' ]] && bg=1
-    if ((energy_left <= 20)); then
-        ((bg == 1)) && clr=$'\e[48;5;124m\e[38;5;15m' || clr=$'\e[38;5;124m'
-    elif ((energy_left <= 50)); then
-        ((bg == 1)) && clr=$'\e[48;5;202m\e[38;5;0m' || clr=$'\e[38;5;202m'
-    elif ((energy_left <= 80)); then
-        ((bg == 1)) && clr=$'\e[48;5;226m\e[38;5;0m' || clr=$'\e[38;5;226m'
-    else
-        ((bg == 1)) && clr=$'\e[48;5;34m\e[38;5;15m' || clr=$'\e[38;5;34m'
-    fi
-    printf "\001%s\002 %s \001%s\002" $clr "$info" $reset
-} #}}}
-
-# Do background update of git index every N minutes. {{{
-_git_status_fetch() {
-    [[ "$PS1_GIT_FETCH_ENABLE" != 1 ]] && return 0
-    local state_cache="$UID-$$"
-    [[ ! -e "/dev/shm/$state_cache" ]] && date +%s > /dev/shm/$state_cache
-    local old_mark=$(cat /dev/shm/$state_cache)
-    local new_mark=$(date +%s)
-    ((new_mark -= $old_mark))
-    if [[ $new_mark -ge $PS1_GIT_FETCH_TIMER ]]; then
-        date +%s > /dev/shm/$state_cache
-        git fetch -q &> /dev/null &
-    fi
-} #}}}
-
 # Return git status string. {{{
 _prompt_git_status() {
     if [[ -v 'PS1_GIT_DETAILED' && $PS1_GIT_DETAILED == 1 ]]; then
@@ -356,8 +282,6 @@ _prompt_git_status_simple() {
     ! git rev-parse --is-inside-work-tree &> /dev/null && return
     # Check if the current directory is ".git".
     [[ $(git rev-parse --is-inside-git-dir 2> /dev/null) == 'true' ]] && return
-    # Do `git fetch`.
-    _git_status_fetch
     # Branch name.
     local branch=$(git symbolic-ref --quiet --short HEAD 2> /dev/null)
     local brcom=$(git rev-parse --short HEAD 2> /dev/null)
@@ -393,8 +317,6 @@ _prompt_git_status_detailed() {
     ! git rev-parse --is-inside-work-tree &> /dev/null && return
     # Check if the current directory is ".git".
     [[ $(git rev-parse --is-inside-git-dir 2> /dev/null) = 'true' ]] && return
-    # Do `git fetch`.
-    _git_status_fetch
     # Collect data.
     local seg=$(git status --branch --porcelain=v1 2> /dev/null)
     local seg_branch=$(echo -e "$seg" | head -n 1)
@@ -487,7 +409,6 @@ PS1+="\[$blue\] in "
 PS1+="\[$green\]\w"
 PS1+="\n"
 PS1+="\[$revs\]\[$white\]\[$bold\]\A \[$reset\]"
-PS1+="\$(_prompt_low_energy -bg)"
 PS1+="\$(_prompt_virtualenv)"
 PS1+="\$(_prompt_git_status)"
 PS1+=" \$(_prompt_uid_color)\$ \[$reset\]"
